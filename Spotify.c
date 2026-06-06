@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+//hail grasa
 typedef struct {
     char nombre[50];
     char artista[50];
