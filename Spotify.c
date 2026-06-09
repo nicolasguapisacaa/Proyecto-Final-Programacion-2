@@ -7,7 +7,7 @@ typedef struct NodoUsuario { // Nodo para el árbol de usuarios
     char contrasena[50];
     char tipo[10];       // "premium" o "free"
     struct NodoUsuario *izq;
-    struct NodoUsuario *der
+    struct NodoUsuario *der;
 } NodoUsuario;
 
 //Prototipos de funciones
@@ -44,7 +44,16 @@ NodoUsuario* Registrarse(NodoUsuario *raiz){ // Función para registrarse, que s
     scanf("%s", contrasena);
     printf("Ingrese el tipo de cuenta (premium o free): ");
     scanf("%s", tipo);
-
+    if (strcmp(tipo, "premium") == 0){
+        printf ("La cuenta premium tiene un costo de $9.99 al mes y puedes disfrutar de una experiencia sin anuncios.\n");
+        printf ("¿Desea continuar con la cuenta premium? (s/n): ");
+        scanf("%c", respuesta);
+        if (respuesta != 's' && respuesta != 'S') {
+            printf("Registro cancelado. Volviendo al menu principal.\n");
+            return raiz;    
+    }
+    }
+    
     raiz = insertarUsuario(raiz, usuario, contrasena, tipo);
     printf("Registro exitoso. Bienvenido, %s!\n", usuario);
     return raiz;
