@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "Verificacion.c"
-//#include "Verificacion.h"
+#include "Verificacion.c"//forma mas rapida
+//#include "Verificacion.h"//forma profesional pero no termino de entender xddddd
+//se supone que ahora en tu vscode puedes correr el programa solo con el play 
 
 typedef struct NodoUsuario { // Nodo para el árbol de usuarios
 	char correo[50];
@@ -14,18 +15,18 @@ typedef struct NodoUsuario { // Nodo para el árbol de usuarios
 } NodoUsuario;
 
 //Prototipos de funciones
-NodoUsuario* insertarUsuario (NodoUsuario *raiz, char user[], char pass [], char tipo[]); // Función para insertar un nuevo usuario en el árbol
-NodoUsuario* buscarUsuario(NodoUsuario *raiz, char user[]); // Función para buscar un usuario en el árbol por su nombre de usuario
+NodoUsuario* insertarUsuario (NodoUsuario *raiz, char correo[], char user[], char pass [], char tipo[]); // Función para insertar un nuevo usuario en el árbol
+NodoUsuario* buscarUsuario(NodoUsuario *raiz, char correo[]); // Función para buscar un usuario en el árbol por su correo
 
 NodoUsuario* IniciarSesion(NodoUsuario *raiz) { // Función para iniciar sesión, que solicita el nombre de usuario y la contraseña, y verifica si son correctos
-	char usuario[50];
+	char correo[50];
 	char contrasena[50];
-	printf("Ingrese su usuario: ");
-	scanf("%s", usuario);
+	printf("Ingrese su correo: ");//se verifica por el correo y el usuario se muestra en la pantalla principal
+	scanf("%s", correo);
 	printf("Ingrese su contrasena: ");
 	scanf("%s", contrasena);
 
-	NodoUsuario *usuarioEncontrado = buscarUsuario(raiz, usuario);
+	NodoUsuario *usuarioEncontrado = buscarUsuario(raiz, correo);
 
 	if (usuarioEncontrado != NULL && strcmp(usuarioEncontrado->contrasena, contrasena) == 0) { // Verificar que la contraseña coincida
 		printf("Inicio de sesion exitoso. Bienvenido, %s!\n", usuarioEncontrado->usuario);
@@ -66,14 +67,14 @@ NodoUsuario* Registrarse(NodoUsuario *raiz) { // Función para registrarse, que 
 		}
 	}
 
-	raiz = insertarUsuario(raiz, usuario, contrasena, tipo);
+	raiz = insertarUsuario(raiz, correo, usuario, contrasena, tipo);
 	printf("Registro exitoso. Bienvenido, %s!\n", usuario);
 	return raiz;
 }
 
-void menuPrincipal() {
+void menuPrincipal(NodoUsuario *usuarioActual) {
 
-	printf("\n===Menu Principal===\n");
+	printf("\n===Hola %s===\n",usuarioActual->usuario);
 
 
 }
@@ -104,7 +105,7 @@ int main() {
 			case 1:
 				usuarioActual = IniciarSesion(raizUsuarios);
 				if (usuarioActual != NULL) {
-					menuPrincipal();
+					menuPrincipal(usuarioActual);
 				}
 				break;
 			case 2:
@@ -123,9 +124,10 @@ int main() {
 }
 
 
-NodoUsuario* insertarUsuario (NodoUsuario *raiz, char user[], char pass [], char tipo[]) { // Función para insertar un nuevo usuario en el árbol
+NodoUsuario* insertarUsuario (NodoUsuario *raiz , char correo[],char user[], char pass [], char tipo[]) { // Función para insertar un nuevo usuario en el árbol
 	if (raiz == NULL) {
 		NodoUsuario *nuevo = (NodoUsuario*)malloc(sizeof(NodoUsuario));
+		strcpy(nuevo->correo,correo);
 		strcpy(nuevo->usuario, user);
 		strcpy(nuevo->contrasena, pass);
 		strcpy(nuevo->tipo, tipo);
@@ -136,24 +138,24 @@ NodoUsuario* insertarUsuario (NodoUsuario *raiz, char user[], char pass [], char
 
 	int comparacion = strcmp(user, raiz->usuario);
 	if (comparacion < 0) {
-		raiz->izq = insertarUsuario(raiz->izq, user, pass, tipo);
+		raiz->izq = insertarUsuario(raiz->izq, correo, user, pass, tipo);
 	} else if (comparacion > 0) {
-		raiz->der = insertarUsuario(raiz->der, user, pass, tipo);
+		raiz->der = insertarUsuario(raiz->der, correo, user, pass, tipo);
 	} else {
 		printf("El usuario ya existe.\n");
 	}
 	return raiz;
 }
 
-NodoUsuario* buscarUsuario(NodoUsuario *raiz, char user[]) { // Función para buscar un usuario en el árbol por su nombre de usuario
-	if(raiz == NULL || strcmp(user, raiz ->usuario)==0) {
+NodoUsuario* buscarUsuario(NodoUsuario *raiz, char correo[]) { // Función para buscar un usuario en el árbol por su correo
+	if(raiz == NULL || strcmp(correo, raiz ->correo)==0) {
 		return raiz;
 	}
 
-	if (strcmp(user, raiz->usuario) < 0) {
-		return buscarUsuario(raiz->izq, user);
+	if (strcmp(correo, raiz->correo) < 0) {
+		return buscarUsuario(raiz->izq, correo);
 	} else {
-		return buscarUsuario(raiz->der, user);
+		return buscarUsuario(raiz->der, correo);
 	}
 }
 
