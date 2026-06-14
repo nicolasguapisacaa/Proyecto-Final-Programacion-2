@@ -8,14 +8,15 @@
 typedef struct NodoUsuario { // Nodo para el árbol de usuarios
 	char correo[50];
 	char usuario[50];
+	char paisOrigen[50];
 	char contrasena[50];
-	char tipo[10];       // "premium" o "free"
+	char tipo[10];// "premium" o "free"
 	struct NodoUsuario *izq;
 	struct NodoUsuario *der;
 } NodoUsuario;
 
 //Prototipos de funciones
-NodoUsuario* insertarUsuario (NodoUsuario *raiz, char correo[], char user[], char pass [], char tipo[]); // Función para insertar un nuevo usuario en el árbol
+NodoUsuario* insertarUsuario (NodoUsuario *raiz,char paisOrigen[], char correo[], char user[], char pass [], char tipo[]); // Función para insertar un nuevo usuario en el árbol
 NodoUsuario* buscarUsuario(NodoUsuario *raiz, char correo[]); // Función para buscar un usuario en el árbol por su correo
 
 NodoUsuario* IniciarSesion(NodoUsuario *raiz) { // Función para iniciar sesión, que solicita el nombre de usuario y la contraseña, y verifica si son correctos
@@ -41,6 +42,7 @@ NodoUsuario* IniciarSesion(NodoUsuario *raiz) { // Función para iniciar sesión
 NodoUsuario* Registrarse(NodoUsuario *raiz) { // Función para registrarse, que solicita el nombre de usuario, la contraseña y el tipo de cuenta (premium o free), y luego inserta el nuevo usuario en el árbol
 	char usuario[50];
 	char contrasena[50];
+	char paisOrigen[50];
 	char tipo[10];
 	char respuesta;
 	char correo[50];
@@ -55,9 +57,16 @@ NodoUsuario* Registrarse(NodoUsuario *raiz) { // Función para registrarse, que 
 	scanf("%s", usuario);
 	printf("Ingrese su contrasena: ");
 	scanf("%s", contrasena);
-	printf("Ingrese el tipo de cuenta (premium o free): ");
+	printf("Ingrese su pais de origen: ");
+	scanf("%s", paisOrigen);
+	i=0;
+	do{
+		printf("Ingrese el tipo de cuenta (premium o free): ");
 	scanf("%s", tipo);
+		i=verificacionPoF(tipo);
+	} while(i!=1);
 	if (strcmp(tipo, "premium") == 0) {
+		getchar();
 		printf ("La cuenta premium tiene un costo de $9.99 al mes y puedes disfrutar de una experiencia sin anuncios.\n");
 		printf ("¿Desea continuar con la cuenta premium? (s/n): ");
 		scanf("%c", &respuesta);
@@ -66,16 +75,32 @@ NodoUsuario* Registrarse(NodoUsuario *raiz) { // Función para registrarse, que 
 			return raiz;
 		}
 	}
-
-	raiz = insertarUsuario(raiz, correo, usuario, contrasena, tipo);
+	
+	raiz = insertarUsuario(raiz, paisOrigen, correo, usuario, contrasena, tipo);
 	printf("Registro exitoso. Bienvenido, %s!\n", usuario);
 	return raiz;
 }
 
 void menuPrincipal(NodoUsuario *usuarioActual) {
-
+int opcion;
 	printf("\n===Hola %s===\n",usuarioActual->usuario);
+	printf("1. Crear playlist\n");
+	printf("2. Eliminar playlist\n");
+	printf("3. Ver playlist\n");
+	printf("4. Agregar amigos\n");
+	printf("5. Ver canciones\n");
+	printf("6. Ver artistas\n");
+	printf("7. Ver estadisticas\n");
+	printf("8. Configuracion\n");//crud del usuario
+	printf("9. Cerrar sesion\n");
+scanf("%d",&opcion);
+switch(opcion){
 
+	case 9:{
+		printf("Volviendo al menu principal..\n");
+		break;
+	}
+}
 
 }
 
@@ -124,9 +149,10 @@ int main() {
 }
 
 
-NodoUsuario* insertarUsuario (NodoUsuario *raiz , char correo[],char user[], char pass [], char tipo[]) { // Función para insertar un nuevo usuario en el árbol
+NodoUsuario* insertarUsuario (NodoUsuario *raiz , char paisOrigen[], char correo[],char user[], char pass [], char tipo[]) { // Función para insertar un nuevo usuario en el árbol
 	if (raiz == NULL) {
 		NodoUsuario *nuevo = (NodoUsuario*)malloc(sizeof(NodoUsuario));
+		strcpy(nuevo->paisOrigen, paisOrigen);
 		strcpy(nuevo->correo,correo);
 		strcpy(nuevo->usuario, user);
 		strcpy(nuevo->contrasena, pass);
@@ -138,9 +164,9 @@ NodoUsuario* insertarUsuario (NodoUsuario *raiz , char correo[],char user[], cha
 
 	int comparacion = strcmp(user, raiz->usuario);
 	if (comparacion < 0) {
-		raiz->izq = insertarUsuario(raiz->izq, correo, user, pass, tipo);
+		raiz->izq = insertarUsuario(raiz->izq, paisOrigen, correo, user, pass, tipo);
 	} else if (comparacion > 0) {
-		raiz->der = insertarUsuario(raiz->der, correo, user, pass, tipo);
+		raiz->der = insertarUsuario(raiz->der, paisOrigen, correo, user, pass, tipo);
 	} else {
 		printf("El usuario ya existe.\n");
 	}
