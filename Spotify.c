@@ -20,8 +20,8 @@ typedef struct NodoUsuario
 NodoUsuario *insertarUsuario(NodoUsuario *raiz, char paisOrigen[], char correo[], char user[], char pass[], char tipo[]); // Función para insertar un nuevo usuario en el árbol
 NodoUsuario *buscarUsuario(NodoUsuario *raiz, char correo[]);															  // Función para buscar un usuario en el árbol por su correo
 
-NodoUsuario *IniciarSesion(NodoUsuario *raiz)
-{ // Función para iniciar sesión, que solicita el nombre de usuario y la contraseña, y verifica si son correctos
+NodoUsuario *IniciarSesion(NodoUsuario *raiz) // Ya funciona bien
+{											  // Función para iniciar sesión, que solicita el nombre de usuario y la contraseña, y verifica si son correctos
 	char correo[50];
 	char contrasena[50];
 	printf("Ingrese su correo: "); // se verifica por el correo y el usuario se muestra en la pantalla principal
@@ -43,8 +43,8 @@ NodoUsuario *IniciarSesion(NodoUsuario *raiz)
 	}
 }
 
-NodoUsuario *Registrarse(NodoUsuario *raiz)
-{ // Función para registrarse, que solicita el nombre de usuario, la contraseña y el tipo de cuenta (premium o free), y luego inserta el nuevo usuario en el árbol
+NodoUsuario *Registrarse(NodoUsuario *raiz) // Ya funciona bien
+{											// Función para registrarse, que solicita el nombre de usuario, la contraseña y el tipo de cuenta (premium o free), y luego inserta el nuevo usuario en el árbol
 	char usuario[50];
 	char contrasena[50];
 	char paisOrigen[50];
@@ -90,7 +90,7 @@ NodoUsuario *Registrarse(NodoUsuario *raiz)
 	return raiz;
 }
 
-void menuPrincipal(NodoUsuario *usuarioActual)
+void menuPrincipal(NodoUsuario *usuarioActual) // Falta agregar las funciones de cada case, pero el menu ya funciona bien
 {
 	int opcion;
 	do
@@ -110,7 +110,7 @@ void menuPrincipal(NodoUsuario *usuarioActual)
 		{
 		case 1:
 		{
-			printf("Creando playlist..\n");
+			crearPlaylist();
 			break;
 		}
 		case 2:
@@ -159,15 +159,6 @@ void menuPrincipal(NodoUsuario *usuarioActual)
 
 int main()
 {
-	// PREGUNTAS PARA EL PROYECTO
-	/* Porque usamos los arboles abb y como se definen los valores de cada nodo ya sea para artistas y usuarios
-
-	*/
-	// entrar al programa, iniciar sesion o registrarse(pedir datos y premium o free, valor y duracion)
-	// mandar al menu de inicio(return)
-	//  menu de agregar canciones,eliminar,playlist,verplan,amigos,artistas,
-	//  estadisticas(canciones mas escucuahdadas,artistaspreferidos,anuncion mostrados,tiempototal))
-
 	// MAIN
 	NodoUsuario *raizUsuarios = NULL;
 	NodoUsuario *usuarioActual = NULL;
@@ -205,8 +196,8 @@ int main()
 	return 0;
 }
 
-NodoUsuario *insertarUsuario(NodoUsuario *raiz, char paisOrigen[], char correo[], char user[], char pass[], char tipo[])
-{ // Función para insertar un nuevo usuario en el árbol
+NodoUsuario *insertarUsuario(NodoUsuario *raiz, char paisOrigen[], char correo[], char user[], char pass[], char tipo[]) // Ya funciona bien
+{																														 // Función para insertar un nuevo usuario en el árbol
 	if (raiz == NULL)
 	{
 		NodoUsuario *nuevo = (NodoUsuario *)malloc(sizeof(NodoUsuario));
@@ -236,7 +227,8 @@ NodoUsuario *insertarUsuario(NodoUsuario *raiz, char paisOrigen[], char correo[]
 	return raiz;
 }
 
-NodoUsuario *buscarUsuario(NodoUsuario *raiz, char correo[])
+NodoUsuario *buscarUsuario(NodoUsuario *raiz, char correo[]) // Ya funciona bien
+
 { // Función para buscar un usuario en el árbol por su correo
 	if (raiz == NULL || strcmp(correo, raiz->correo) == 0)
 	{
@@ -252,3 +244,54 @@ NodoUsuario *buscarUsuario(NodoUsuario *raiz, char correo[])
 		return buscarUsuario(raiz->der, correo);
 	}
 }
+
+// Funcion para crear playlists, funciona bien pero falta agregar la logica para almacenar las canciones en la playlist, y tambien falta agregar la logica para mostrar las playlists creadas por el usuario
+void crearPlaylist()
+{
+	char nombrePlaylist[50];
+	printf("Ingrese el nombre de la playlist: ");
+	scanf("%s", nombrePlaylist);
+	printf("Playlist '%s' creada exitosamente.\n", nombrePlaylist);
+	printf("Desea agregar canciones a la playlist? (s/n): ");
+	char respuesta;
+	scanf(" %c", &respuesta);
+	if (respuesta == 's' || respuesta == 'S')
+	{
+		printf("Agregando canciones a la playlist '%s'...\n", nombrePlaylist);
+		agregarCanciones();
+
+		almacenarCanciones();
+	}
+	else
+	{
+		printf("Playlist '%s' creada sin canciones.\n", nombrePlaylist);
+	}
+}
+
+//Funcion para agregar canciones a la playlist
+void agregarCanciones()
+{
+	char nombreCancion[50];
+	printf("Ingrese el nombre de la cancion: ");
+	scanf("%s", nombreCancion);
+	printf("Cancion '%s' agregada a la playlist.\n", nombreCancion);
+	// Aquí puedes agregar la lógica para almacenar las canciones en la playlist
+}
+
+void almacenarCanciones()
+{
+	// Aquí puedes agregar la lógica para almacenar las canciones en la playlist
+}
+
+typedef struct NodoPlaylist
+{ // Nodo para la lista de playlists
+	char nombre[50];
+	struct NodoPlaylist *siguiente;
+} NodoPlaylist;
+
+typedef struct NodoCancion
+{ // Nodo para la lista de canciones
+	char nombre[50];
+	struct NodoCancion *siguiente;
+} NodoCancion;
+
