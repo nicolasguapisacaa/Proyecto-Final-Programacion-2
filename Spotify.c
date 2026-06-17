@@ -1,30 +1,162 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "Verificacion.c" //forma mas rapida
-// #include "Verificacion.h"//forma profesional pero no termino de entender xddddd
-// se supone que ahora en tu vscode puedes correr el programa solo con el play
+#include "Verificacion.c" // forma mas rapida, segun gemini esta bien xddd
 
+// ============================================================================
+// NUVAS ESTRUCTURAS: LISTAS ENLAZADAS ANIDADAS
+// ============================================================================
+
+// 1. Nodo para la lista de canciones
+typedef struct NodoCancion
+{
+	char nombre[50];
+	struct NodoCancion *siguiente;
+} NodoCancion;
+
+// 2. Nodo para la lista de playlists.
+// Cada playlist ahora contiene su propia lista de canciones.
+typedef struct NodoPlaylist
+{
+	char nombre[50];
+	NodoCancion *listaCanciones; //Puntero al inicio de su lista de canciones
+	struct NodoPlaylist *siguiente;
+} NodoPlaylist;
+
+// 3. Nodo para el árbol de usuarios.
+// Cada usuario ahora es dueño de su propia lista de playlists.
 typedef struct NodoUsuario
-{ // Nodo para el árbol de usuarios
+{
 	char correo[50];
 	char usuario[50];
 	char paisOrigen[50];
 	char contrasena[50];
-	char tipo[10]; // "premium" o "free"
+	char tipo[10];				// "premium" o "free"
+	NodoPlaylist *misPlaylists; // Puntero al inicio de sus playlists
 	struct NodoUsuario *izq;
 	struct NodoUsuario *der;
 } NodoUsuario;
 
 // Prototipos de funciones
-NodoUsuario *insertarUsuario(NodoUsuario *raiz, char paisOrigen[], char correo[], char user[], char pass[], char tipo[]); // Función para insertar un nuevo usuario en el árbol
-NodoUsuario *buscarUsuario(NodoUsuario *raiz, char correo[]);															  // Función para buscar un usuario en el árbol por su correo
+NodoUsuario *insertarUsuario(NodoUsuario *raiz, char paisOrigen[], char correo[], char user[], char pass[], char tipo[]);
+NodoUsuario *buscarUsuario(NodoUsuario *raiz, char correo[]);
+void crearPlaylist(NodoUsuario *usuarioActual);		  // Recibe el usuario actual
+void agregarCancionAPlaylist(NodoPlaylist *playlist); // Recibe la playlist destino
+void verPlaylists(NodoUsuario *usuarioActual);		  // Nueva función para mostrar datos
 
-NodoUsuario *IniciarSesion(NodoUsuario *raiz) // Ya funciona bien
-{											  // Función para iniciar sesión, que solicita el nombre de usuario y la contraseña, y verifica si son correctos
+// ============================================================================
+// FUNCIONES DE PLAYLISTS Y CANCIONES (LOGICA IMPLEMENTADA)
+// ============================================================================
+
+// Función para agregar canciones directamente a una playlist específica
+void agregarCancionAPlaylist(NodoPlaylist *playlist)
+{
+	char nombreCancion[50];
+	printf("Ingrese el nombre de la cancion: ");
+	scanf("%s", nombreCancion);
+
+	// Reservar memoria para la nueva canción
+	NodoCancion *nuevaCancion = (NodoCancion *)malloc(sizeof(NodoCancion));
+	strcpy(nuevaCancion->nombre, nombreCancion);
+	nuevaCancion->siguiente = NULL;
+
+	// Insertar la canción al inicio de la lista de canciones de esta playlist
+	if (playlist->listaCanciones == NULL)
+	{
+		playlist->listaCanciones = nuevaCancion;
+	}
+	else
+	{
+		nuevaCancion->siguiente = playlist->listaCanciones;
+		playlist->listaCanciones = nuevaCancion;
+	}
+	printf("Cancion '%s' agregada a la playlist.\n", nombreCancion);
+}
+
+// Función para crear la playlist asignada al usuario actual y luego preguntar si desea agregar canciones
+void crearPlaylist(NodoUsuario *usuarioActual)
+{
+	if (usuarioActual == NULL)
+		return;
+
+	char nombrePlaylist[50];
+	printf("Ingrese el nombre de la playlist: ");
+	scanf("%s", nombrePlaylist);
+
+	// Reservar memoria para la nueva playlist
+	NodoPlaylist *nuevaPlaylist = (NodoPlaylist *)malloc(sizeof(NodoPlaylist));
+	strcpy(nuevaPlaylist->nombre, nombrePlaylist);
+	nuevaPlaylist->listaCanciones = NULL; // Inicialmente no tiene canciones
+	nuevaPlaylist->siguiente = NULL;
+
+	// Insertar la playlist al inicio de la lista de playlists del usuario actual
+	if (usuarioActual->misPlaylists == NULL)
+	{
+		usuarioActual->misPlaylists = nuevaPlaylist;
+	}
+	else
+	{
+		nuevaPlaylist->siguiente = usuarioActual->misPlaylists;
+		usuarioActual->misPlaylists = nuevaPlaylist;
+	}
+	printf("Playlist '%s' creada exitosamente.\n", nombrePlaylist);
+
+	// Preguntar si desea añadir canciones en este momento
+	char respuesta;
+	printf("¿Desea agregar canciones a la playlist? (s/n): ");
+	scanf(" %c", &respuesta);
+
+	while (respuesta == 's' || respuesta == 'S')
+	{
+		agregarCancionAPlaylist(nuevaPlaylist); // Le pasamos la playlist que acabamos de crear
+		printf("¿Desea agregar otra cancion? (s/n): ");
+		scanf(" %c", &respuesta);
+	}
+}
+
+// Nueva función para recorrer e imprimir las playlists y canciones del usuario
+void verPlaylists(NodoUsuario *usuarioActual)
+{
+	if (usuarioActual == NULL || usuarioActual->misPlaylists == NULL)
+	{
+		printf("No tienes playlists creadas aun.\n");
+		return;
+	}
+
+	// Recorremos la lista de playlists del usuario
+	NodoPlaylist *actualPL = usuarioActual->misPlaylists;
+	printf("\n=== TUS PLAYLISTS ===\n");
+	while (actualPL != NULL)
+	{
+		printf("- Playlist: %s\n", actualPL->nombre);
+
+		// Por cada playlist, recorremos su sublista de canciones
+		NodoCancion *actualCancion = actualPL->listaCanciones;
+		if (actualCancion == NULL)
+		{
+			printf("  [Esta playlist no tiene canciones]\n");
+		}
+		else
+		{
+			while (actualCancion != NULL)
+			{
+				printf("    > %s\n", actualCancion->nombre);
+				actualCancion = actualCancion->siguiente; // Avanzar a la siguiente canción
+			}
+		}
+		actualPL = actualPL->siguiente; // Avanzar a la siguiente playlist
+	}
+}
+
+// ============================================================================
+// FLUJO PRINCIPAL Y CONFIGURACIÓN DE USUARIOS
+// ============================================================================
+
+NodoUsuario *IniciarSesion(NodoUsuario *raiz)
+{
 	char correo[50];
 	char contrasena[50];
-	printf("Ingrese su correo: "); // se verifica por el correo y el usuario se muestra en la pantalla principal
+	printf("Ingrese su correo: ");
 	scanf("%s", correo);
 	printf("Ingrese su contrasena: ");
 	scanf("%s", contrasena);
@@ -32,7 +164,7 @@ NodoUsuario *IniciarSesion(NodoUsuario *raiz) // Ya funciona bien
 	NodoUsuario *usuarioEncontrado = buscarUsuario(raiz, correo);
 
 	if (usuarioEncontrado != NULL && strcmp(usuarioEncontrado->contrasena, contrasena) == 0)
-	{ // Verificar que la contraseña coincida
+	{
 		printf("Inicio de sesion exitoso. Bienvenido, %s!\n", usuarioEncontrado->usuario);
 		return usuarioEncontrado;
 	}
@@ -43,8 +175,8 @@ NodoUsuario *IniciarSesion(NodoUsuario *raiz) // Ya funciona bien
 	}
 }
 
-NodoUsuario *Registrarse(NodoUsuario *raiz) // Ya funciona bien
-{											// Función para registrarse, que solicita el nombre de usuario, la contraseña y el tipo de cuenta (premium o free), y luego inserta el nuevo usuario en el árbol
+NodoUsuario *Registrarse(NodoUsuario *raiz)
+{
 	char usuario[50];
 	char contrasena[50];
 	char paisOrigen[50];
@@ -90,7 +222,7 @@ NodoUsuario *Registrarse(NodoUsuario *raiz) // Ya funciona bien
 	return raiz;
 }
 
-void menuPrincipal(NodoUsuario *usuarioActual) // Falta agregar las funciones de cada case, pero el menu ya funciona bien
+void menuPrincipal(NodoUsuario *usuarioActual)
 {
 	int opcion;
 	do
@@ -98,19 +230,20 @@ void menuPrincipal(NodoUsuario *usuarioActual) // Falta agregar las funciones de
 		printf("\n===Hola %s===\n", usuarioActual->usuario);
 		printf("1. Crear playlist\n");
 		printf("2. Eliminar playlist\n");
-		printf("3. Ver playlist\n");
+		printf("3. Ver playlists y canciones\n"); 
 		printf("4. Agregar amigos\n");
-		printf("5. Ver canciones\n");
+		printf("5. Ver canciones generales\n");
 		printf("6. Ver artistas\n");
 		printf("7. Ver estadisticas\n");
-		printf("8. Configuracion\n"); // crud del usuario
+		printf("8. Configuracion\n");
 		printf("9. Cerrar sesion\n");
+		printf("Seleccione una opcion: ");
 		scanf("%d", &opcion);
 		switch (opcion)
 		{
 		case 1:
 		{
-			crearPlaylist();
+			crearPlaylist(usuarioActual); // Enviamos el usuario logueado para modificar sus listas
 			break;
 		}
 		case 2:
@@ -120,7 +253,7 @@ void menuPrincipal(NodoUsuario *usuarioActual) // Falta agregar las funciones de
 		}
 		case 3:
 		{
-			printf("Mostrando playlist..\n");
+			verPlaylists(usuarioActual); // Llama a la nueva función de visualización
 			break;
 		}
 		case 4:
@@ -159,14 +292,13 @@ void menuPrincipal(NodoUsuario *usuarioActual) // Falta agregar las funciones de
 
 int main()
 {
-	// MAIN
 	NodoUsuario *raizUsuarios = NULL;
 	NodoUsuario *usuarioActual = NULL;
 	int opcion;
 
 	do
 	{
-		printf("1. Iniciar Sesion\n");
+		printf("\n1. Iniciar Sesion\n");
 		printf("2. Registrarse\n");
 		printf("3. Salir\n");
 		printf("Seleccione una opcion: ");
@@ -196,8 +328,8 @@ int main()
 	return 0;
 }
 
-NodoUsuario *insertarUsuario(NodoUsuario *raiz, char paisOrigen[], char correo[], char user[], char pass[], char tipo[]) // Ya funciona bien
-{																														 // Función para insertar un nuevo usuario en el árbol
+NodoUsuario *insertarUsuario(NodoUsuario *raiz, char paisOrigen[], char correo[], char user[], char pass[], char tipo[])
+{
 	if (raiz == NULL)
 	{
 		NodoUsuario *nuevo = (NodoUsuario *)malloc(sizeof(NodoUsuario));
@@ -206,6 +338,7 @@ NodoUsuario *insertarUsuario(NodoUsuario *raiz, char paisOrigen[], char correo[]
 		strcpy(nuevo->usuario, user);
 		strcpy(nuevo->contrasena, pass);
 		strcpy(nuevo->tipo, tipo);
+		nuevo->misPlaylists = NULL; // CAMBIO CLAVE: Inicializar el puntero de playlists en NULL
 		nuevo->izq = NULL;
 		nuevo->der = NULL;
 		return nuevo;
@@ -227,9 +360,8 @@ NodoUsuario *insertarUsuario(NodoUsuario *raiz, char paisOrigen[], char correo[]
 	return raiz;
 }
 
-NodoUsuario *buscarUsuario(NodoUsuario *raiz, char correo[]) // Ya funciona bien
-
-{ // Función para buscar un usuario en el árbol por su correo
+NodoUsuario *buscarUsuario(NodoUsuario *raiz, char correo[])
+{
 	if (raiz == NULL || strcmp(correo, raiz->correo) == 0)
 	{
 		return raiz;
@@ -244,54 +376,3 @@ NodoUsuario *buscarUsuario(NodoUsuario *raiz, char correo[]) // Ya funciona bien
 		return buscarUsuario(raiz->der, correo);
 	}
 }
-
-// Funcion para crear playlists, funciona bien pero falta agregar la logica para almacenar las canciones en la playlist, y tambien falta agregar la logica para mostrar las playlists creadas por el usuario
-void crearPlaylist()
-{
-	char nombrePlaylist[50];
-	printf("Ingrese el nombre de la playlist: ");
-	scanf("%s", nombrePlaylist);
-	printf("Playlist '%s' creada exitosamente.\n", nombrePlaylist);
-	printf("Desea agregar canciones a la playlist? (s/n): ");
-	char respuesta;
-	scanf(" %c", &respuesta);
-	if (respuesta == 's' || respuesta == 'S')
-	{
-		printf("Agregando canciones a la playlist '%s'...\n", nombrePlaylist);
-		agregarCanciones();
-
-		almacenarCanciones();
-	}
-	else
-	{
-		printf("Playlist '%s' creada sin canciones.\n", nombrePlaylist);
-	}
-}
-
-//Funcion para agregar canciones a la playlist
-void agregarCanciones()
-{
-	char nombreCancion[50];
-	printf("Ingrese el nombre de la cancion: ");
-	scanf("%s", nombreCancion);
-	printf("Cancion '%s' agregada a la playlist.\n", nombreCancion);
-	// Aquí puedes agregar la lógica para almacenar las canciones en la playlist
-}
-
-void almacenarCanciones()
-{
-	// Aquí puedes agregar la lógica para almacenar las canciones en la playlist
-}
-
-typedef struct NodoPlaylist
-{ // Nodo para la lista de playlists
-	char nombre[50];
-	struct NodoPlaylist *siguiente;
-} NodoPlaylist;
-
-typedef struct NodoCancion
-{ // Nodo para la lista de canciones
-	char nombre[50];
-	struct NodoCancion *siguiente;
-} NodoCancion;
-
