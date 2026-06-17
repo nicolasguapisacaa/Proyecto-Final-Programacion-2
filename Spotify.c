@@ -246,8 +246,7 @@ NodoUsuario *buscarUsuario(NodoUsuario *raiz, char correo[]) // Ya funciona bien
 }
 
 // Funcion para crear playlists, funciona bien pero falta agregar la logica para almacenar las canciones en la playlist, y tambien falta agregar la logica para mostrar las playlists creadas por el usuario
-void crearPlaylist()
-{
+void crearPlaylist(){
 	char nombrePlaylist[50];
 	printf("Ingrese el nombre de la playlist: ");
 	scanf("%s", nombrePlaylist);
