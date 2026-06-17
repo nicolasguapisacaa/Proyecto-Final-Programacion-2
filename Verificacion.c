@@ -5,7 +5,7 @@
 
 int verificacionCorreo(char correo[]){
 	
-	int i,j;
+	int j;
 	
 	for(j=0;correo[j]!='\0';j++){
 		
