@@ -44,37 +44,7 @@ void crearPlaylist(NodoUsuario *usuarioActual);		  // Recibe el usuario actual(q
 void agregarCancionAPlaylist(NodoPlaylist *playlist); // Recibe la playlist destino(quitar al terminar)
 void verPlaylists(NodoUsuario *usuarioActual);		  // Nueva función para mostrar datos(quitar al terminar)
 
-NodoUsuario *cargarArchivoU(NodoUsuario *raiz)//cada usuario que lea se manda a la funcion insercion para crear el abb
-{
-FILE *archivo=fopen("Usuarios.txt","r");
-NodoUsuario *raiz=NULL;
 
-if(archivo==NULL){
-	printf("Error no se pudo abrir el archivo\n");
-	return 0;
-}
-char linea[500];
-	char correo[50];
-	char usuario[50];
-	char paisOrigen[50];
-	char contrasena[50];
-	char tipo[10];	
-int i,len,j,k;
-int contador=0;//modificar con cada aumento de datos del usuario
-while(fgets(linea,sizeof(linea),archivo)){
-j=0;
-len=strlen(linea);
-for(i=0;i<len;i++){
-	if(linea[i]==';'){
-		continue;
-	}
-
-}
-
-//terminar luego(xd me llamaron)
-}
-
-}
 // ============================================================================
 // FUNCIONES DE PLAYLISTS Y CANCIONES (LOGICA IMPLEMENTADA)
 // ============================================================================
