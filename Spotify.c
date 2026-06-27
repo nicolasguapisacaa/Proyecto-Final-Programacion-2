@@ -57,7 +57,7 @@ NodoUsuario *cargarArchivoU(NodoUsuario *raiz)//cada usuario que lea se manda a 
 	char linea[1000];
 	char *paisOrigen, *correo, *usuario, *contrasena, *tipo;
 
-	while (fgets(linea, sizeof(linea), archivo)) {1
+	while (fgets(linea, sizeof(linea), archivo)) {
 
 		linea[strcspn(linea, "\n")] = '\0';
 
