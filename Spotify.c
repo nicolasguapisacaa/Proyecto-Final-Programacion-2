@@ -3,6 +3,7 @@
 #include <string.h>
 #include "Verificacion.c" // forma mas rapida, segun gemini esta bien xddd
 
+
 // ============================================================================
 // NUVAS ESTRUCTURAS: LISTAS ENLAZADAS ANIDADAS
 // ============================================================================
@@ -44,7 +45,37 @@ void crearPlaylist(NodoUsuario *usuarioActual);		  // Recibe el usuario actual(q
 void agregarCancionAPlaylist(NodoPlaylist *playlist); // Recibe la playlist destino(quitar al terminar)
 void verPlaylists(NodoUsuario *usuarioActual);		  // Nueva función para mostrar datos(quitar al terminar)
 
+NodoUsuario *cargarArchivoU(NodoUsuario *raiz)//cada usuario que lea se manda a la funcion insercion para crear el abb
+{
+	FILE *archivo = fopen("Usuarios.txt", "r");
 
+	if (archivo == NULL) {
+		printf("Error no se pudo abrir el archivo\n");
+		return raiz;
+	}
+
+	char linea[1000];
+	char *paisOrigen, *correo, *usuario, *contrasena, *tipo;
+
+	while (fgets(linea, sizeof(linea), archivo)) {1
+
+		linea[strcspn(linea, "\n")] = '\0';
+
+		paisOrigen = strtok(linea, ";");
+		correo     = strtok(NULL, ";");
+		usuario    = strtok(NULL, ";");
+		contrasena = strtok(NULL, ";");
+		tipo       = strtok(NULL, ";");
+
+		if (paisOrigen && correo && usuario && contrasena && tipo) {
+			raiz = insertarUsuario(raiz, paisOrigen, correo, usuario, contrasena, tipo);
+		}
+	}
+
+	fclose(archivo);
+	printf("Usuarios cargados correctamente\n");
+	return raiz;
+}
 // ============================================================================
 // FUNCIONES DE PLAYLISTS Y CANCIONES (LOGICA IMPLEMENTADA)
 // ============================================================================
@@ -298,7 +329,7 @@ int main()
 	NodoUsuario *raizUsuarios = NULL;
 	NodoUsuario *usuarioActual = NULL;
 	int opcion;
-
+raizUsuarios=cargarArchivoU(raizUsuarios);
 	do
 	{
 		printf("\n1. Iniciar Sesion\n");
