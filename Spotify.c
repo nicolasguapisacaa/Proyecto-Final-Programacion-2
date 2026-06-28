@@ -310,6 +310,94 @@ NodoUsuario *Registrarse(NodoUsuario *raiz)
 	printf("Registro exitoso. Bienvenido, %s!\n", usuario);
 	return raiz;
 }
+// usar fgets en todo para que no se salte pasos
+void Configuracion(NodoUsuario *usuarioActual){
+system("cls");
+getchar();
+int opc;
+char ver;
+char cambio[50];
+printf("==Configuracion del Usuario==\n");
+printf("1. Cambiar el nombre de usuario\n");
+printf("2. Cambiar la contrasena\n");
+printf("3. Cambiar el pais\n");
+printf("4. Actualizar el plan\n");
+printf("5. Volver\n");
+scanf("%d", &opc);
+switch(opc){
+	case 1:{
+		printf("Escriba su nuevo usuario\n");
+	fgets(cambio,50,stdin);
+	cambio[strcspn(cambio,"\n")]='\0';
+	printf("Seguro desea cambiar su usuario a %s", cambio);
+	scanf("%c", &ver);
+	if(ver=='s' || ver=='S'){
+	strcpy(usuarioActual->usuario,cambio);
+	}
+		break;
+	}
+	case 2:{
+		char contrasenaAnt[50];
+		printf("Escriba su contrasena actual:");
+		fgets(contrasenaAnt,50,stdin);
+		contrasenaAnt[strcspn(contrasenaAnt,"\n")]='\0';
+		if(strcmp(contrasenaAnt,usuarioActual->contrasena)==0){
+			printf("\nEscriba la nueva contrasena:");
+			fgets(cambio,50,stdin);
+			cambio[strcspn(cambio,"\n")]='\0';
+			printf("Seguro desea cambiar su contrasena");
+		scanf("%c", &ver);
+		if(ver=='s' || ver=='S'){
+		strcpy(usuarioActual->contrasena,cambio);
+		}
+		}
+		break;
+	}
+	case 3:{
+		printf("Escriba su actual pais de residencia\n");
+	fgets(cambio,50,stdin);
+	cambio[strcspn(cambio,"\n")]='\0';
+	printf("Seguro desea cambiar su pais a %s", cambio);
+	scanf("%c", &ver);
+	if(ver=='s' || ver=='S'){
+	strcpy(usuarioActual->paisOrigen,cambio);
+	}
+		break;
+	}
+	case 4:{
+	char respuesta;
+		if(strcmp(usuarioActual->tipo,"premium")==0){
+		printf("Desea cancelar su suscripcion?\n");
+		scanf("%c",&ver);
+		if(ver=='s' || ver=='S'){
+		strcpy(usuarioActual->tipo,"free");
+		}
+		printf("Suscripcion cancelada\n");
+		}else if(strcmp(usuarioActual->tipo,"free")==0){
+		printf("Desea comprar el plan premium?");
+		scanf("%c",&ver);
+			if(ver=='s' || ver=='S'){
+			printf("La cuenta premium tiene un costo de $9.99 al mes y puedes disfrutar de una experiencia sin anuncios.\n");
+			printf("¿Desea continuar con la cuenta premium? (s/n): ");
+			scanf("%c", &respuesta);
+				if(respuesta=='s' || respuesta=='S'){
+				strcpy(usuarioActual->tipo,"premium");
+				}else{
+					printf("Suscripcion cancelada\n");
+				}
+			}
+		}
+
+		break;
+	}
+	case 5:{
+
+		break;
+	}
+
+}
+
+}
 
 void menuPrincipal(NodoUsuario *usuarioActual)
 {
@@ -322,7 +410,7 @@ void menuPrincipal(NodoUsuario *usuarioActual)
 		printf("3. Ver playlists y canciones\n"); 
 		printf("4. Agregar amigos\n");
 		printf("5. Ver canciones generales\n");
-		printf("6. Ver artistas\n");
+		printf("6. Buscar canciones o artistas\n");
 		printf("7. Ver estadisticas\n");
 		printf("8. Configuracion\n");
 		printf("9. Cerrar sesion\n");
@@ -352,13 +440,12 @@ void menuPrincipal(NodoUsuario *usuarioActual)
 		}
 		case 5:
 		{
-			printf("Mostrando canciones..\n");
 			mostrarCanciones();
 			break;
 		}
 		case 6:
 		{
-			printf("Mostrando artistas..\n");
+			printf("Buscando canciones o artistas..\n");
 			break;
 		}
 		case 7:
@@ -368,7 +455,7 @@ void menuPrincipal(NodoUsuario *usuarioActual)
 		}
 		case 8:
 		{
-			printf("Mostrando configuracion..\n");
+		Configuracion(usuarioActual);		
 			break;
 		}
 		case 9:
