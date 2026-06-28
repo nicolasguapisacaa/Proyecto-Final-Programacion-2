@@ -2,8 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "Verificacion.c" // forma mas rapida, segun gemini esta bien xddd
-
-
 // ============================================================================
 // NUVAS ESTRUCTURAS: LISTAS ENLAZADAS ANIDADAS
 // ============================================================================
@@ -44,7 +42,7 @@ NodoUsuario *buscarUsuario(NodoUsuario *raiz, char correo[]);
 void crearPlaylist(NodoUsuario *usuarioActual);		  // Recibe el usuario actual(quitar al terminar)
 void agregarCancionAPlaylist(NodoPlaylist *playlist); // Recibe la playlist destino(quitar al terminar)
 void verPlaylists(NodoUsuario *usuarioActual);		  // Nueva función para mostrar datos(quitar al terminar)
-
+//Funcion para cargar usuarios ya existentes
 NodoUsuario *cargarArchivoU(NodoUsuario *raiz)//cada usuario que lea se manda a la funcion insercion para crear el abb
 {
 	FILE *archivo = fopen("Usuarios.txt", "r");
@@ -57,10 +55,8 @@ NodoUsuario *cargarArchivoU(NodoUsuario *raiz)//cada usuario que lea se manda a 
 	char linea[1000];
 	char *paisOrigen, *correo, *usuario, *contrasena, *tipo;
 
-	while (fgets(linea, sizeof(linea), archivo)) {
-
+	while (fgets(linea, sizeof(linea), archivo)) {1
 		linea[strcspn(linea, "\n")] = '\0';
-
 		paisOrigen = strtok(linea, ";");
 		correo     = strtok(NULL, ";");
 		usuario    = strtok(NULL, ";");
@@ -361,7 +357,6 @@ raizUsuarios=cargarArchivoU(raizUsuarios);
 
 	return 0;
 }
-//terminado
 
 NodoUsuario *insertarUsuario(NodoUsuario *raiz, char paisOrigen[], char correo[], char user[], char pass[], char tipo[])
 {
