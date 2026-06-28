@@ -9,10 +9,14 @@
 // 1. Nodo para la lista de canciones
 typedef struct NodoCancion
 {
-	char nombre[50];
+	char nombre[50];//titulo de la cancion
+	char artista[50];//autor de la cancion (cambiar en el resto de las funciones)
 	struct NodoCancion *siguiente;
+	struct NodoCancion *anterior;
 } NodoCancion;
 
+NodoCancion *InicioC =NULL; //primera cancion en la lista de canciones disponibles
+NodoCancion *FinC =NULL;//ultima cancion en la lista de canciones disponibles
 // 2. Nodo para la lista de playlists.
 // Cada playlist ahora contiene su propia lista de canciones.
 typedef struct NodoPlaylist
@@ -39,9 +43,9 @@ typedef struct NodoUsuario
 // Prototipos de funciones
 NodoUsuario *insertarUsuario(NodoUsuario *raiz, char paisOrigen[],char correo[],char user[],char pass[],char tipo[]);//no cambiar de lugar
 NodoUsuario *buscarUsuario(NodoUsuario *raiz, char correo[]);
-void crearPlaylist(NodoUsuario *usuarioActual);		  // Recibe el usuario actual(quitar al terminar)
-void agregarCancionAPlaylist(NodoPlaylist *playlist); // Recibe la playlist destino(quitar al terminar)
-void verPlaylists(NodoUsuario *usuarioActual);		  // Nueva función para mostrar datos(quitar al terminar)
+void crearPlaylist(NodoUsuario *usuarioActual);		  // Recibe el usuario actual
+void agregarCancionAPlaylist(NodoPlaylist *playlist); // Recibe la playlist destino
+void verPlaylists(NodoUsuario *usuarioActual);		  // Nueva función para mostrar datos
 //Funcion para cargar usuarios ya existentes
 NodoUsuario *cargarArchivoU(NodoUsuario *raiz)//cada usuario que lea se manda a la funcion insercion para crear el abb
 {
@@ -55,7 +59,7 @@ NodoUsuario *cargarArchivoU(NodoUsuario *raiz)//cada usuario que lea se manda a 
 	char linea[1000];
 	char *paisOrigen, *correo, *usuario, *contrasena, *tipo;
 
-	while (fgets(linea, sizeof(linea), archivo)) {1
+	while (fgets(linea, sizeof(linea), archivo)) {
 		linea[strcspn(linea, "\n")] = '\0';
 		paisOrigen = strtok(linea, ";");
 		correo     = strtok(NULL, ";");
@@ -72,6 +76,51 @@ NodoUsuario *cargarArchivoU(NodoUsuario *raiz)//cada usuario que lea se manda a 
 	printf("Usuarios cargados correctamente\n");
 	return raiz;
 }
+
+NodoCancion *insertarCancion (char cancion[],char artista[]){
+	NodoCancion *nueva = malloc(sizeof(NodoCancion));
+ 	strcpy(nueva->nombre,cancion);
+	strcpy(nueva->artista,artista);
+ 	nueva->anterior=NULL;
+ 	nueva->siguiente=NULL;
+
+	if(InicioC==NULL){
+		InicioC=nueva;
+		FinC=nueva;
+	}else{
+
+		nueva->anterior=FinC;
+		FinC->siguiente=nueva;
+		FinC=nueva;
+	}
+
+	return InicioC;
+}
+
+
+NodoCancion *archivoCancionesGenerales(NodoCancion *cancion){
+FILE *archivoC= fopen("Canciones.txt","r");
+	if(archivoC==NULL){
+	printf("Error no se pudieron cargar las canciones disponibles\n");
+	return NULL;
+	}
+	char linea[100];
+	char *Titulo,*Artista;
+
+	while(fgets(linea,sizeof(linea),archivoC)){
+
+		linea[strcspn(linea,"\n")]= '\0';
+		Titulo= strtok(linea,";");
+		Artista= strtok(NULL,";");
+		if(Titulo){
+			InicioC = insertarCancion (Titulo,Artista);
+		}
+	}
+	printf("Canciones cargadas correctamente\n");
+
+	return InicioC;
+}
+
 // ============================================================================
 // FUNCIONES DE PLAYLISTS Y CANCIONES (LOGICA IMPLEMENTADA)
 // ============================================================================
@@ -79,6 +128,7 @@ NodoUsuario *cargarArchivoU(NodoUsuario *raiz)//cada usuario que lea se manda a 
 // Función para agregar canciones directamente a una playlist específica
 void agregarCancionAPlaylist(NodoPlaylist *playlist)
 {
+
 	char nombreCancion[50];
 	printf("Ingrese el nombre de la cancion: ");
 	scanf("%s", nombreCancion);
@@ -128,17 +178,17 @@ void crearPlaylist(NodoUsuario *usuarioActual)
 		usuarioActual->misPlaylists = nuevaPlaylist;
 	}
 	printf("Playlist '%s' creada exitosamente.\n", nombrePlaylist);
-
+getchar();
 	// Preguntar si desea añadir canciones en este momento
 	char respuesta;
-	printf("¿Desea agregar canciones a la playlist? (s/n): ");
-	scanf(" %c", &respuesta);
+	printf("Desea agregar canciones a la playlist? (s/n): ");
+	scanf("%c", &respuesta);
 
 	while (respuesta == 's' || respuesta == 'S')
 	{
 		agregarCancionAPlaylist(nuevaPlaylist); // Le pasamos la playlist que acabamos de crear
 		printf("¿Desea agregar otra cancion? (s/n): ");
-		scanf(" %c", &respuesta);
+		scanf("%c", &respuesta);
 	}
 }
 
@@ -176,6 +226,16 @@ void verPlaylists(NodoUsuario *usuarioActual)
 	}
 }
 
+void mostrarCanciones(){
+
+	NodoCancion *temp=InicioC;
+	printf("==Canciones disponibles==\n");
+	while(temp!=NULL){
+		printf("%s-%s\n",temp->nombre,temp->artista);
+		temp= temp->siguiente;
+	}
+
+}
 // ============================================================================
 // FLUJO PRINCIPAL Y CONFIGURACIÓN DE USUARIOS
 // ============================================================================
@@ -250,7 +310,6 @@ NodoUsuario *Registrarse(NodoUsuario *raiz)
 	printf("Registro exitoso. Bienvenido, %s!\n", usuario);
 	return raiz;
 }
-//terminado
 
 void menuPrincipal(NodoUsuario *usuarioActual)
 {
@@ -294,6 +353,7 @@ void menuPrincipal(NodoUsuario *usuarioActual)
 		case 5:
 		{
 			printf("Mostrando canciones..\n");
+			mostrarCanciones();
 			break;
 		}
 		case 6:
@@ -326,6 +386,7 @@ int main()
 	NodoUsuario *usuarioActual = NULL;
 	int opcion;
 raizUsuarios=cargarArchivoU(raizUsuarios);
+InicioC=archivoCancionesGenerales(InicioC);
 	do
 	{
 		printf("\n1. Iniciar Sesion\n");
