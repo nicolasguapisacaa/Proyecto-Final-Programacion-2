@@ -270,7 +270,7 @@ NodoUsuario *Registrarse(NodoUsuario *raiz)
 	char contrasena[50];
 	char paisOrigen[50];
 	char tipo[10];
-	char respuesta;
+	char respuesta[10];
 	char correo[50];
 	int i = 0;
 	do
@@ -297,9 +297,10 @@ NodoUsuario *Registrarse(NodoUsuario *raiz)
 	{
 		getchar();
 		printf("La cuenta premium tiene un costo de $9.99 al mes y puedes disfrutar de una experiencia sin anuncios.\n");
-		printf("¿Desea continuar con la cuenta premium? (s/n): ");
-		scanf("%c", &respuesta);
-		if (respuesta != 's' && respuesta != 'S')
+		printf("Desea continuar con la cuenta premium? (s/n): ");
+		fgets(respuesta,10,stdin);
+		respuesta[strcspn(respuesta,"\n")]='\0';
+		if (respuesta[0] != 's' && respuesta[0] != 'S')
 		{
 			printf("Registro cancelado. Volviendo al menu principal.\n");
 			return raiz;
@@ -310,30 +311,32 @@ NodoUsuario *Registrarse(NodoUsuario *raiz)
 	printf("Registro exitoso. Bienvenido, %s!\n", usuario);
 	return raiz;
 }
-// usar fgets en todo para que no se salte pasos
+
 void Configuracion(NodoUsuario *usuarioActual){
 system("cls");
-getchar();
 int opc;
-char ver;
+char ver[10];
 char cambio[50];
+char respuesta[10];
 printf("==Configuracion del Usuario==\n");
-printf("1. Cambiar el nombre de usuario\n");
+printf("1. Cambiar el nombre de usuario\n");	
 printf("2. Cambiar la contrasena\n");
 printf("3. Cambiar el pais\n");
 printf("4. Actualizar el plan\n");
 printf("5. Volver\n");
 scanf("%d", &opc);
+getchar();
 switch(opc){
 	case 1:{
-		printf("Escriba su nuevo usuario\n");
+	printf("Escriba su nuevo usuario\n");
 	fgets(cambio,50,stdin);
 	cambio[strcspn(cambio,"\n")]='\0';
 	printf("Seguro desea cambiar su usuario a %s", cambio);
-	scanf("%c", &ver);
-	if(ver=='s' || ver=='S'){
-	strcpy(usuarioActual->usuario,cambio);
-	}
+	fgets(ver,10,stdin);
+		ver[strcspn(ver,"\n")]='\0';
+		if(ver[0]=='s' || ver[0]=='S'){
+		strcpy(usuarioActual->usuario,cambio);
+		}
 		break;
 	}
 	case 2:{
@@ -346,8 +349,9 @@ switch(opc){
 			fgets(cambio,50,stdin);
 			cambio[strcspn(cambio,"\n")]='\0';
 			printf("Seguro desea cambiar su contrasena");
-		scanf("%c", &ver);
-		if(ver=='s' || ver=='S'){
+		fgets(ver,10,stdin);
+		ver[strcspn(ver,"\n")]='\0';
+		if(ver[0]=='s' || ver[0]=='S'){
 		strcpy(usuarioActual->contrasena,cambio);
 		}
 		}
@@ -358,30 +362,34 @@ switch(opc){
 	fgets(cambio,50,stdin);
 	cambio[strcspn(cambio,"\n")]='\0';
 	printf("Seguro desea cambiar su pais a %s", cambio);
-	scanf("%c", &ver);
-	if(ver=='s' || ver=='S'){
-	strcpy(usuarioActual->paisOrigen,cambio);
-	}
+	fgets(ver,10,stdin);
+		ver[strcspn(ver,"\n")]='\0';
+		if(ver[0]=='s' || ver[0]=='S'){
+		strcpy(usuarioActual->paisOrigen,cambio);
+		}
 		break;
 	}
 	case 4:{
-	char respuesta;
 		if(strcmp(usuarioActual->tipo,"premium")==0){
 		printf("Desea cancelar su suscripcion?\n");
-		scanf("%c",&ver);
-		if(ver=='s' || ver=='S'){
+		fgets(ver,10,stdin);
+		ver[strcspn(ver,"\n")]='\0';
+		if(ver[0]=='s' || ver[0]=='S'){
 		strcpy(usuarioActual->tipo,"free");
 		}
 		printf("Suscripcion cancelada\n");
 		}else if(strcmp(usuarioActual->tipo,"free")==0){
-		printf("Desea comprar el plan premium?");
-		scanf("%c",&ver);
-			if(ver=='s' || ver=='S'){
+		printf("Desea comprar el plan premium?:");
+		fgets(ver,10,stdin);
+		ver[strcspn(ver,"\n")]='\0';
+			if(ver[0]=='s' || ver[0]=='S'){
 			printf("La cuenta premium tiene un costo de $9.99 al mes y puedes disfrutar de una experiencia sin anuncios.\n");
-			printf("¿Desea continuar con la cuenta premium? (s/n): ");
-			scanf("%c", &respuesta);
-				if(respuesta=='s' || respuesta=='S'){
+			printf("Desea continuar con la cuenta premium? (s/n):");
+			fgets(respuesta,10,stdin);
+			respuesta[strcspn(respuesta,"\n")]='\0';
+				if(respuesta[0]=='s' || respuesta[0]=='S'){
 				strcpy(usuarioActual->tipo,"premium");
+				printf("Registro cpmletado disfruta tus beneficios premium\n");
 				}else{
 					printf("Suscripcion cancelada\n");
 				}
@@ -396,7 +404,6 @@ switch(opc){
 	}
 
 }
-
 }
 
 void menuPrincipal(NodoUsuario *usuarioActual)
@@ -455,6 +462,7 @@ void menuPrincipal(NodoUsuario *usuarioActual)
 		}
 		case 8:
 		{
+		getchar();
 		Configuracion(usuarioActual);		
 			break;
 		}
