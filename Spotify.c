@@ -72,6 +72,99 @@ void submenuAmigos(NodoUsuario *usuarioActual, NodoUsuario *raizUsuarios);
 void menuPrincipal(NodoUsuario *usuarioActual, NodoUsuario *raizUsuarios);
 void GuardarDatos(NodoUsuario *raiz);
 void eliminarABBUsuario(NodoUsuario *raiz, FILE *archivo);
+
+int main() {
+	NodoUsuario *raizUsuarios = NULL;
+	NodoUsuario *usuarioActual = NULL;
+	int opcion;
+	raizUsuarios=cargarArchivoU(raizUsuarios);
+	InicioC=archivoCancionesGenerales(InicioC);
+	do {
+		printf("\n1. Iniciar Sesion\n");
+		printf("2. Registrarse\n");
+		printf("3. Salir\n");
+		printf("Seleccione una opcion: ");
+		scanf("%d", &opcion);
+
+		switch (opcion) {
+			case 1:
+				usuarioActual = IniciarSesion(raizUsuarios);
+				if (usuarioActual != NULL) {
+					menuPrincipal(usuarioActual, raizUsuarios);
+				}
+				break;
+			case 2:
+				getchar();
+				raizUsuarios = Registrarse(raizUsuarios);
+				break;
+			case 3:
+				printf("Saliendo del programa...\n");
+				break;
+			default:
+				printf("Opcion no valida. Intente de nuevo.\n");
+		}
+	} while (opcion != 3);
+
+	return 0;
+}
+
+//Verificaciones
+int verificacionCorreo(char correo[]) {
+
+	int j;
+
+	for(j=0; correo[j]!='\0'; j++) {
+
+		if(correo[j]== '@') {
+			return 1;
+		}
+
+	}
+	printf("Correo no valido\n");
+	return 0;
+}
+
+int verificacionPoF(char tipo[]) {
+
+	if(strcmp(tipo,"premium")==0 || strcmp(tipo,"free")==0) {
+		return 1;
+	} else {
+		printf("Escriba correctamente el tipo de cuenta\n");
+		return 0;
+	}
+
+}
+
+//Cargar usuarios ya existentes 
+NodoUsuario *cargarArchivoU(NodoUsuario *raiz) { //cada usuario que lea se manda a la funcion insercion para crear el abb
+	FILE *archivo = fopen("Usuarios.txt", "r");
+
+	if (archivo == NULL) {
+		printf("Error no se pudo abrir el archivo\n");
+		return raiz;
+	}
+
+	char linea[1000];
+	char *paisOrigen, *correo, *usuario, *contrasena, *tipo;
+
+	while (fgets(linea, sizeof(linea), archivo)) {
+		linea[strcspn(linea, "\n")] = '\0';
+		paisOrigen = strtok(linea, ";");
+		correo     = strtok(NULL, ";");
+		usuario    = strtok(NULL, ";");
+		contrasena = strtok(NULL, ";");
+		tipo       = strtok(NULL, ";");
+
+		if (paisOrigen && correo && usuario && contrasena && tipo) {
+			raiz = insertarUsuario(raiz, paisOrigen, correo, usuario, contrasena, tipo);
+		}
+	}
+
+	fclose(archivo);
+	printf("Usuarios cargados correctamente\n");
+	return raiz;
+}
+
 // ============================================================================
 // FUNCIONES DE PLAYLISTS Y CANCIONES (LOGICA IMPLEMENTADA)
 // ============================================================================
@@ -796,97 +889,6 @@ void menuPrincipal(NodoUsuario *usuarioActual, NodoUsuario *raizUsuarios) {
 	} while (opcion != 7);
 }
 
-int main() {
-	NodoUsuario *raizUsuarios = NULL;
-	NodoUsuario *usuarioActual = NULL;
-	int opcion;
-	raizUsuarios=cargarArchivoU(raizUsuarios);
-	InicioC=archivoCancionesGenerales(InicioC);
-	do {
-		printf("\n1. Iniciar Sesion\n");
-		printf("2. Registrarse\n");
-		printf("3. Salir\n");
-		printf("Seleccione una opcion: ");
-		scanf("%d", &opcion);
-
-		switch (opcion) {
-			case 1:
-				usuarioActual = IniciarSesion(raizUsuarios);
-				if (usuarioActual != NULL) {
-					menuPrincipal(usuarioActual, raizUsuarios);
-				}
-				break;
-			case 2:
-				getchar();
-				raizUsuarios = Registrarse(raizUsuarios);
-				break;
-			case 3:
-				printf("Saliendo del programa...\n");
-				break;
-			default:
-				printf("Opcion no valida. Intente de nuevo.\n");
-		}
-	} while (opcion != 3);
-
-	return 0;
-}
-
-//Verificaciones
-int verificacionCorreo(char correo[]) {
-
-	int j;
-
-	for(j=0; correo[j]!='\0'; j++) {
-
-		if(correo[j]== '@') {
-			return 1;
-		}
-
-	}
-	printf("Correo no valido\n");
-	return 0;
-}
-
-int verificacionPoF(char tipo[]) {
-
-	if(strcmp(tipo,"premium")==0 || strcmp(tipo,"free")==0) {
-		return 1;
-	} else {
-		printf("Escriba correctamente el tipo de cuenta\n");
-		return 0;
-	}
-
-}
-
-//Cargar usuarios ya existentes 
-NodoUsuario *cargarArchivoU(NodoUsuario *raiz) { //cada usuario que lea se manda a la funcion insercion para crear el abb
-	FILE *archivo = fopen("Usuarios.txt", "r");
-
-	if (archivo == NULL) {
-		printf("Error no se pudo abrir el archivo\n");
-		return raiz;
-	}
-
-	char linea[1000];
-	char *paisOrigen, *correo, *usuario, *contrasena, *tipo;
-
-	while (fgets(linea, sizeof(linea), archivo)) {
-		linea[strcspn(linea, "\n")] = '\0';
-		paisOrigen = strtok(linea, ";");
-		correo     = strtok(NULL, ";");
-		usuario    = strtok(NULL, ";");
-		contrasena = strtok(NULL, ";");
-		tipo       = strtok(NULL, ";");
-
-		if (paisOrigen && correo && usuario && contrasena && tipo) {
-			raiz = insertarUsuario(raiz, paisOrigen, correo, usuario, contrasena, tipo);
-		}
-	}
-
-	fclose(archivo);
-	printf("Usuarios cargados correctamente\n");
-	return raiz;
-}
 
 NodoCancion *insertarCancion (char cancion[],char artista[]) {
 	NodoCancion *nueva = malloc(sizeof(NodoCancion));
