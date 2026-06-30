@@ -175,6 +175,27 @@ void agregarCancionAPlaylist(NodoPlaylist *playlist)
 	
 }
 
+NodoPlaylist *buscarPlaylist(char nombre[],NodoUsuario *usuarioAct){
+
+if(usuarioAct->misPlaylists==NULL){
+
+	printf("No se encontro la playlist\n");
+	return NULL;
+}
+
+NodoPlaylist *temp=usuarioAct->misPlaylists;
+
+while(temp!=NULL){
+
+if(strcmp(nombre,temp->nombre)==0){
+	return temp;
+
+}
+
+}
+printf("No se encontro la playlist\n");
+}
+
 // Función para crear la playlist asignada al usuario actual y luego preguntar si desea agregar canciones
 void crearPlaylist(NodoUsuario *usuarioActual)
 {
@@ -285,7 +306,7 @@ if(usuarioActual->misPlaylists==NULL){
 	return NULL;
 }
 
-mostrarPlaylist();
+mostrarPlaylist(usuarioActual);
 printf("Escriba el nombre de la playlist a borrar:");
 fgets(Dplay,sizeof(Dplay),stdin);
 Dplay[strcspn(Dplay,"\n")]='\0';
@@ -297,7 +318,7 @@ while(borrarC!=NULL){
 	borrarC=borrarC->siguiente;
 	free(cancionAct);
 }	
-if(anterior==NULL){
+if(act==NULL){
 
 	usuarioActual->misPlaylists=temp->siguiente;
 
@@ -533,7 +554,13 @@ void menuPrincipal(NodoUsuario *usuarioActual)
 		}
 		case 6:
 		{
-			printf("Buscando canciones o artistas..\n");
+			char busqueda[50];
+			printf("Escriba la cancion o artista a buscar\n");
+			fgets(busqueda,sizeof(busqueda),stdin);
+			busqueda[strcspn(busqueda,"\n")]='\0';
+			NodoCancion *temp=buscarCancion(busqueda);
+			free(temp);
+			
 			break;
 		}
 		case 7:
