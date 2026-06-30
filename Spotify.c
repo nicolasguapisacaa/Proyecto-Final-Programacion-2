@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "Verificacion.c" // forma mas rapida, segun gemini esta bien xddd
 // ============================================================================
 // NUVAS ESTRUCTURAS: LISTAS ENLAZADAS ANIDADAS
 // ============================================================================
@@ -40,6 +39,34 @@ typedef struct NodoUsuario
 	struct NodoUsuario *der;
 } NodoUsuario;
 
+//VERIFICACIONES
+
+int verificacionCorreo(char correo[]){
+	
+	int j;
+	
+	for(j=0;correo[j]!='\0';j++){
+		
+		if(correo[j]== '@'){
+			return 1;
+		}
+		
+	}
+	printf("Correo no valido\n");
+	return 0;
+}
+
+int verificacionPoF(char tipo[]){
+
+if(strcmp(tipo,"premium")==0 || strcmp(tipo,"free")==0){
+	return 1;
+}
+else{
+		printf("Escriba correctamente el tipo de cuenta\n");
+		return 0;
+}
+
+}
 // Prototipos de funciones
 NodoUsuario *insertarUsuario(NodoUsuario *raiz, char paisOrigen[],char correo[],char user[],char pass[],char tipo[]);//no cambiar de lugar
 NodoUsuario *buscarUsuario(NodoUsuario *raiz, char correo[]);
@@ -504,6 +531,9 @@ switch(opc){
 
 		break;
 	}
+		default:{
+			printf("Opcion no valida\n");
+		}
 
 }
 }
@@ -578,6 +608,9 @@ void menuPrincipal(NodoUsuario *usuarioActual)
 		{
 			printf("Volviendo al menu principal..\n");
 			break;
+		}
+		default:{
+			printf("Opcion no valida\n");
 		}
 		}
 	} while (opcion != 9);
