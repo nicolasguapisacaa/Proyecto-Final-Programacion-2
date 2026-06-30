@@ -305,6 +305,39 @@ void mostrarPlaylist(NodoUsuario *usuarioActual) {
 
 }
 
+void reproducirPlaylist(NodoUsuario *usuarioActual){
+	if (usuarioActual == NULL || usuarioActual -> misPlaylist ==NULL){
+		printf ("No existen playlists creadas\n");
+		return;
+	}
+
+	char nombreP[50];
+	getchar();
+	printf ("Ingrese el nombre de la playlist: ");
+	fgets (nombreP, sizeof(nombreP), stdin);
+	nombreP[strcspn(nombreP, "\n")]= '\0';
+
+	NodoPlaylist *playlist = buscarPlaylist(nombreP, usuarioActual);
+
+	if (playlist == NULL){
+		return;
+
+	}
+
+	if (playlist -> listaCanciones=NULL){
+		printf ("Esta playlist no contiene canciones para reproducir\n");
+		return;
+	}
+
+	NodoCancion *cancionActual = playlist -> listaCanciones;
+	int opcion = 0;
+	int enReproduccion = 1; //Si esta con 1 esta reproduciendo, en 0 en pausa
+
+	
+
+
+}
+
 NodoPlaylist *eliminarPlaylist(NodoUsuario *usuarioActual) {
 	NodoPlaylist *temp;
 	NodoPlaylist *act=NULL;
