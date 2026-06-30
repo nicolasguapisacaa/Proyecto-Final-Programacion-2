@@ -69,6 +69,8 @@ NodoUsuario *IniciarSesion(NodoUsuario *raiz);
 NodoUsuario *Registrarse(NodoUsuario *raiz);
 void Configuracion(NodoUsuario *usuarioActual);
 void menuPrincipal(NodoUsuario *usuarioActual);
+void GuardarDatos(NodoUsuario *raiz);
+void eliminarABBUsuario(NodoUsuario *raiz, FILE *archivo);
 
 int main() {
 	NodoUsuario *raizUsuarios = NULL;
@@ -101,6 +103,8 @@ int main() {
 				printf("Opcion no valida. Intente de nuevo.\n");
 		}
 	} while (opcion != 3);
+
+	GuardarDatos(raizUsuarios);
 
 	return 0;
 }
@@ -700,4 +704,39 @@ NodoUsuario *buscarUsuario(NodoUsuario *raiz, char correo[]) {
 	} else {
 		return buscarUsuario(raiz->der, correo);
 	}
+}
+
+void GuardarDatos(NodoUsuario *raiz){
+FILE *archivo=fopen("Usuarios.txt","w");
+
+if(archivo!=NULL){
+eliminarABBUsuario(raiz,archivo);
+fclose(archivo);
+raiz=NULL;
+}
+
+}
+
+void eliminarABBUsuario(NodoUsuario *raiz, FILE *archivo){
+
+if(raiz==NULL){
+
+	return;
+}
+
+eliminarABBUsuario(raiz->izq,archivo);
+eliminarABBUsuario(raiz->der,archivo);
+
+fprintf(archivo,"%s;",raiz->paisOrigen);
+
+fprintf(archivo,"%s;",raiz->correo);
+
+fprintf(archivo,"%s;",raiz->usuario);
+
+fprintf(archivo,"%s;",raiz->contrasena);
+
+fprintf(archivo,"%s\n",raiz->tipo);
+
+free(raiz);
+
 }
