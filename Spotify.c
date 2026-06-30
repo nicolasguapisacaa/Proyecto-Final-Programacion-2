@@ -59,408 +59,16 @@ NodoCancion *archivoCancionesGenerales(NodoCancion *cancion);
 NodoCancion *buscarCancion( char busqueda[]);
 void agregarCancionAPlaylist(NodoPlaylist *playlist);
 NodoPlaylist *buscarPlaylist(char nombre[],NodoUsuario *usuarioAct);
-// ============================================================================
-// FUNCIONES DE PLAYLISTS Y CANCIONES (LOGICA IMPLEMENTADA)
-// ============================================================================
-
-// Función para agregar canciones directamente a una playlist específica
-
-
-// Función para crear la playlist asignada al usuario actual y luego preguntar si desea agregar canciones
-void crearPlaylist(NodoUsuario *usuarioActual) {
-	if (usuarioActual == NULL)
-		return;
-
-	char nombrePlaylist[50];
-	printf("Ingrese el nombre de la playlist: ");
-	scanf("%s", nombrePlaylist);
-
-	// Reservar memoria para la nueva playlist
-	NodoPlaylist *nuevaPlaylist = (NodoPlaylist *)malloc(sizeof(NodoPlaylist));
-	strcpy(nuevaPlaylist->nombre, nombrePlaylist);
-	nuevaPlaylist->listaCanciones = NULL; // Inicialmente no tiene canciones
-	nuevaPlaylist->siguiente = NULL;
-
-	// Insertar la playlist al inicio de la lista de playlists del usuario actual
-	if (usuarioActual->misPlaylists == NULL) {
-		usuarioActual->misPlaylists = nuevaPlaylist;
-	} else {
-		nuevaPlaylist->siguiente = usuarioActual->misPlaylists;
-		usuarioActual->misPlaylists = nuevaPlaylist;
-	}
-	printf("Playlist '%s' creada exitosamente.\n", nombrePlaylist);
-	getchar();
-	// Preguntar si desea añadir canciones en este momento
-	char respuesta;
-	printf("Desea agregar canciones a la playlist? (s/n): ");
-	scanf("%c", &respuesta);
-
-	while (respuesta == 's' || respuesta == 'S') {
-		agregarCancionAPlaylist(nuevaPlaylist); // Le pasamos la playlist que acabamos de crear
-		printf("Desea agregar otra cancion? (s/n):");
-		scanf(" %c", &respuesta);
-	}
-}
-
-// Nueva función para recorrer e imprimir las playlists y canciones del usuario
-void verPlaylists(NodoUsuario *usuarioActual) {
-	if (usuarioActual == NULL || usuarioActual->misPlaylists == NULL) {
-		printf("No tienes playlists creadas aun.\n");
-		return;
-	}
-
-	// Recorremos la lista de playlists del usuario
-	NodoPlaylist *actualPL = usuarioActual->misPlaylists;
-	printf("\n=== TUS PLAYLISTS ===\n");
-	while (actualPL != NULL) {
-		printf("- Playlist: %s\n", actualPL->nombre);
-
-		// Por cada playlist, recorremos su sublista de canciones
-		NodoCancion *actualCancion = actualPL->listaCanciones;
-		if (actualCancion == NULL) {
-			printf("  [Esta playlist no tiene canciones]\n");
-		} else {
-			while (actualCancion != NULL) {
-				printf("    > %s\n", actualCancion->nombre);
-				actualCancion = actualCancion->siguiente; // Avanzar a la siguiente canción
-			}
-		}
-		actualPL = actualPL->siguiente; // Avanzar a la siguiente playlist
-	}
-}
-
-void mostrarCanciones() {
-
-	NodoCancion *temp=InicioC;
-	printf("==Canciones disponibles==\n");
-	while(temp!=NULL) {
-		printf("%s-%s\n",temp->nombre,temp->artista);
-		temp= temp->siguiente;
-	}
-
-}
-
-void mostrarPlaylist(NodoUsuario *usuarioActual) {
-	NodoPlaylist *temp;
-	temp=usuarioActual->misPlaylists;
-
-	while(temp!=NULL) {
-
-		printf("Playlist: %s",temp->nombre);
-		temp=temp->siguiente;
-	}
-
-}
-
-void reproducirPlaylist(NodoUsuario *usuarioActual){
-	if (usuarioActual == NULL || usuarioActual -> misPlaylists ==NULL){
-		printf ("No existen playlists creadas\n");
-		return;
-	}
-
-	char nombreP[50];
-	getchar();
-	printf ("Ingrese el nombre de la playlist: ");
-	fgets (nombreP, sizeof(nombreP), stdin);
-	nombreP[strcspn(nombreP, "\n")]= '\0';
-
-	NodoPlaylist *playlist = buscarPlaylist(nombreP, usuarioActual);
-
-	if (playlist == NULL){
-		return;
-
-	}
-
-	if (playlist -> listaCanciones=NULL){
-		printf ("Esta playlist no contiene canciones para reproducir\n");
-		return;
-	}
-
-	NodoCancion *cancionActual = playlist -> listaCanciones;
-	int opcion = 0;
-	int enReproduccion = 1; //Si esta con 1 esta reproduciendo, en 0 en pausa
-
-	
-
-
-}
-
-NodoPlaylist *eliminarPlaylist(NodoUsuario *usuarioActual) {
-	NodoPlaylist *temp;
-	NodoPlaylist *act=NULL;
-	temp=usuarioActual->misPlaylists;
-
-	char Dplay[50];
-	if(usuarioActual->misPlaylists==NULL) {
-
-		printf("No se encuentran playlist\n");
-		return NULL;
-	}
-
-	mostrarPlaylist(usuarioActual);
-	printf("Escriba el nombre de la playlist a borrar:");
-	fgets(Dplay,sizeof(Dplay),stdin);
-	Dplay[strcspn(Dplay,"\n")]='\0';
-	while(temp!=NULL) {
-		if(strcmp(Dplay,temp->nombre)==0) {
-			NodoCancion *borrarC=temp->listaCanciones;
-			while(borrarC!=NULL) {
-				NodoCancion *cancionAct=borrarC;
-				borrarC=borrarC->siguiente;
-				free(cancionAct);
-			}
-			if(act==NULL) {
-
-				usuarioActual->misPlaylists=temp->siguiente;
-
-			} else {
-				act->siguiente=temp->siguiente;
-			}
-			free(temp);
-			printf("Playlist eliminada correctamenten\n");
-			return usuarioActual->misPlaylists;
-
-		}
-
-		act=temp;
-		temp=temp->siguiente;
-	}
-	printf("No se encontro la playlist\n");
-	return usuarioActual->misPlaylists;
-
-}
-// ============================================================================
-// FLUJO PRINCIPAL Y CONFIGURACIÓN DE USUARIOS
-// ============================================================================
-
-NodoUsuario *IniciarSesion(NodoUsuario *raiz) {
-	char correo[50];
-	char contrasena[50];
-	printf("Ingrese su correo: ");
-	scanf("%s", correo);
-	printf("Ingrese su contrasena: ");
-	scanf("%s", contrasena);
-
-	NodoUsuario *usuarioEncontrado = buscarUsuario(raiz, correo);
-
-	if (usuarioEncontrado != NULL && strcmp(usuarioEncontrado->contrasena, contrasena) == 0) {
-		printf("Inicio de sesion exitoso. Bienvenido, %s!\n", usuarioEncontrado->usuario);
-		return usuarioEncontrado;
-	} else {
-		printf("Usuario o contrasena incorrectos.\n");
-		return NULL;
-	}
-}
-
-
-NodoUsuario *Registrarse(NodoUsuario *raiz) {
-	char usuario[50];
-	char contrasena[50];
-	char paisOrigen[50];
-	char tipo[10];
-	char respuesta[10];
-	char correo[50];
-	int i = 0;
-	do {
-		printf("Escriba su correo electronico\n");
-		fgets(correo, 50, stdin);
-		correo[strcspn(correo, "\n")] = '\0';
-		i = verificacionCorreo(correo);
-	} while (i != 1);
-	printf("Ingrese su usuario: ");
-	scanf("%s", usuario);
-	printf("Ingrese su contrasena: ");
-	scanf("%s", contrasena);
-	printf("Ingrese su pais de origen: ");
-	scanf("%s", paisOrigen);
-	i = 0;
-	do {
-		printf("Ingrese el tipo de cuenta (premium o free): ");
-		scanf("%s", tipo);
-		i = verificacionPoF(tipo);
-	} while (i != 1);
-	if (strcmp(tipo, "premium") == 0) {
-		getchar();
-		printf("La cuenta premium tiene un costo de $9.99 al mes y puedes disfrutar de una experiencia sin anuncios.\n");
-		printf("Desea continuar con la cuenta premium? (s/n): ");
-		fgets(respuesta,10,stdin);
-		respuesta[strcspn(respuesta,"\n")]='\0';
-		if (respuesta[0] != 's' && respuesta[0] != 'S') {
-			printf("Registro cancelado. Volviendo al menu principal.\n");
-			return raiz;
-		}
-	}
-
-	raiz = insertarUsuario(raiz, paisOrigen, correo, usuario, contrasena, tipo);
-	printf("Registro exitoso. Bienvenido, %s!\n", usuario);
-	return raiz;
-}
-
-void Configuracion(NodoUsuario *usuarioActual) {
-	system("cls");
-	int opc;
-	char ver[10];
-	char cambio[50];
-	char respuesta[10];
-	printf("==Configuracion del Usuario==\n");
-	printf("1. Cambiar el nombre de usuario\n");
-	printf("2. Cambiar la contrasena\n");
-	printf("3. Cambiar el pais\n");
-	printf("4. Actualizar el plan\n");
-	printf("5. Volver\n");
-	scanf("%d", &opc);
-	getchar();
-	switch(opc) {
-		case 1: {
-			printf("Escriba su nuevo usuario\n");
-			fgets(cambio,50,stdin);
-			cambio[strcspn(cambio,"\n")]='\0';
-			printf("Seguro desea cambiar su usuario a %s", cambio);
-			fgets(ver,10,stdin);
-			ver[strcspn(ver,"\n")]='\0';
-			if(ver[0]=='s' || ver[0]=='S') {
-				strcpy(usuarioActual->usuario,cambio);
-			}
-			break;
-		}
-		case 2: {
-			char contrasenaAnt[50];
-			printf("Escriba su contrasena actual:");
-			fgets(contrasenaAnt,50,stdin);
-			contrasenaAnt[strcspn(contrasenaAnt,"\n")]='\0';
-			if(strcmp(contrasenaAnt,usuarioActual->contrasena)==0) {
-				printf("\nEscriba la nueva contrasena:");
-				fgets(cambio,50,stdin);
-				cambio[strcspn(cambio,"\n")]='\0';
-				printf("Seguro desea cambiar su contrasena");
-				fgets(ver,10,stdin);
-				ver[strcspn(ver,"\n")]='\0';
-				if(ver[0]=='s' || ver[0]=='S') {
-					strcpy(usuarioActual->contrasena,cambio);
-				}
-			}
-			break;
-		}
-		case 3: {
-			printf("Escriba su actual pais de residencia\n");
-			fgets(cambio,50,stdin);
-			cambio[strcspn(cambio,"\n")]='\0';
-			printf("Seguro desea cambiar su pais a %s", cambio);
-			fgets(ver,10,stdin);
-			ver[strcspn(ver,"\n")]='\0';
-			if(ver[0]=='s' || ver[0]=='S') {
-				strcpy(usuarioActual->paisOrigen,cambio);
-			}
-			break;
-		}
-		case 4: {
-			if(strcmp(usuarioActual->tipo,"premium")==0) {
-				printf("Desea cancelar su suscripcion?\n");
-				fgets(ver,10,stdin);
-				ver[strcspn(ver,"\n")]='\0';
-				if(ver[0]=='s' || ver[0]=='S') {
-					strcpy(usuarioActual->tipo,"free");
-				}
-				printf("Suscripcion cancelada\n");
-			} else if(strcmp(usuarioActual->tipo,"free")==0) {
-				printf("Desea comprar el plan premium?:");
-				fgets(ver,10,stdin);
-				ver[strcspn(ver,"\n")]='\0';
-				if(ver[0]=='s' || ver[0]=='S') {
-					printf("La cuenta premium tiene un costo de $9.99 al mes y puedes disfrutar de una experiencia sin anuncios.\n");
-					printf("Desea continuar con la cuenta premium? (s/n):");
-					fgets(respuesta,10,stdin);
-					respuesta[strcspn(respuesta,"\n")]='\0';
-					if(respuesta[0]=='s' || respuesta[0]=='S') {
-						strcpy(usuarioActual->tipo,"premium");
-						printf("Registro cpmletado disfruta tus beneficios premium\n");
-					} else {
-						printf("Suscripcion cancelada\n");
-					}
-				}
-			}
-
-			break;
-		}
-		case 5: {
-
-			break;
-		}
-		default: {
-			printf("Opcion no valida\n");
-		}
-
-	}
-}
-
-void menuPrincipal(NodoUsuario *usuarioActual) {
-	int opcion;
-	do {
-		printf("\n===Hola %s===\n", usuarioActual->usuario);
-		printf("1. Crear playlist\n");
-		printf("2. Eliminar playlist\n");
-		printf("3. Ver playlists y canciones\n");
-		printf("4. Agregar amigos\n");
-		printf("5. Ver canciones generales\n");
-		printf("6. Buscar canciones o artistas\n");
-		printf("7. Ver estadisticas\n");
-		printf("8. Configuracion\n");
-		printf("9. Cerrar sesion\n");
-		printf("Seleccione una opcion: ");
-		scanf("%d", &opcion);
-		switch (opcion) {
-			case 1: {
-				crearPlaylist(usuarioActual); // Enviamos el usuario logueado para modificar sus listas
-				break;
-			}
-			case 2: {
-				usuarioActual->misPlaylists=eliminarPlaylist(usuarioActual);
-				break;
-			}
-			case 3: {
-				verPlaylists(usuarioActual); // Llama a la nueva función de visualización
-				break;
-			}
-			case 4: {
-				printf("Agregando amigos..\n");
-				break;
-			}
-			case 5: {
-				mostrarCanciones();
-				break;
-			}
-			case 6: {
-				char busqueda[50];
-				printf("Escriba la cancion o artista a buscar\n");
-				getchar();
-				fgets(busqueda,sizeof(busqueda),stdin);
-				busqueda[strcspn(busqueda,"\n")]='\0';
-				NodoCancion *temp=buscarCancion(busqueda);
-				if (temp!=NULL){
-					printf("Encontrado: %s - %s\n", temp->nombre, temp->artista);
-				}
-
-				break;
-			}
-			case 7: {
-				printf("Mostrando estadisticas..\n");
-				break;
-			}
-			case 8: {
-				getchar();
-				Configuracion(usuarioActual);
-				break;
-			}
-			case 9: {
-				printf("Volviendo al menu principal..\n");
-				break;
-			}
-			default: {
-				printf("Opcion no valida\n");
-			}
-		}
-	} while (opcion != 9);
-}
+void crearPlaylist(NodoUsuario *usuarioActual);
+void verPlaylists(NodoUsuario *usuarioActual);
+void mostrarCanciones();
+void mostrarPlaylist(NodoUsuario *usuarioActual);
+void reproducirPlaylist(NodoUsuario *usuarioActual);
+NodoPlaylist *eliminarPlaylist(NodoUsuario *usuarioActual);
+NodoUsuario *IniciarSesion(NodoUsuario *raiz);
+NodoUsuario *Registrarse(NodoUsuario *raiz);
+void Configuracion(NodoUsuario *usuarioActual);
+void menuPrincipal(NodoUsuario *usuarioActual);
 
 int main() {
 	NodoUsuario *raizUsuarios = NULL;
@@ -665,6 +273,393 @@ NodoPlaylist *buscarPlaylist(char nombre[],NodoUsuario *usuarioAct) {
 	printf("No se encontro la playlist\n");
 	return NULL;
 }
+void crearPlaylist(NodoUsuario *usuarioActual) {
+	if (usuarioActual == NULL)
+		return;
+
+	char nombrePlaylist[50];
+	printf("Ingrese el nombre de la playlist: ");
+	scanf("%s", nombrePlaylist);
+
+	// Reservar memoria para la nueva playlist
+	NodoPlaylist *nuevaPlaylist = (NodoPlaylist *)malloc(sizeof(NodoPlaylist));
+	strcpy(nuevaPlaylist->nombre, nombrePlaylist);
+	nuevaPlaylist->listaCanciones = NULL; // Inicialmente no tiene canciones
+	nuevaPlaylist->siguiente = NULL;
+
+	// Insertar la playlist al inicio de la lista de playlists del usuario actual
+	if (usuarioActual->misPlaylists == NULL) {
+		usuarioActual->misPlaylists = nuevaPlaylist;
+	} else {
+		nuevaPlaylist->siguiente = usuarioActual->misPlaylists;
+		usuarioActual->misPlaylists = nuevaPlaylist;
+	}
+	printf("Playlist '%s' creada exitosamente.\n", nombrePlaylist);
+	getchar();
+	// Preguntar si desea añadir canciones en este momento
+	char respuesta;
+	printf("Desea agregar canciones a la playlist? (s/n): ");
+	scanf("%c", &respuesta);
+
+	while (respuesta == 's' || respuesta == 'S') {
+		agregarCancionAPlaylist(nuevaPlaylist); // Le pasamos la playlist que acabamos de crear
+		printf("Desea agregar otra cancion? (s/n):");
+		scanf(" %c", &respuesta);
+	}
+}
+
+void verPlaylists(NodoUsuario *usuarioActual) {
+	if (usuarioActual == NULL || usuarioActual->misPlaylists == NULL) {
+		printf("No tienes playlists creadas aun.\n");
+		return;
+	}
+
+	// Recorremos la lista de playlists del usuario
+	NodoPlaylist *actualPL = usuarioActual->misPlaylists;
+	printf("\n=== TUS PLAYLISTS ===\n");
+	while (actualPL != NULL) {
+		printf("- Playlist: %s\n", actualPL->nombre);
+
+		// Por cada playlist, recorremos su sublista de canciones
+		NodoCancion *actualCancion = actualPL->listaCanciones;
+		if (actualCancion == NULL) {
+			printf("  [Esta playlist no tiene canciones]\n");
+		} else {
+			while (actualCancion != NULL) {
+				printf("    > %s\n", actualCancion->nombre);
+				actualCancion = actualCancion->siguiente; // Avanzar a la siguiente canción
+			}
+		}
+		actualPL = actualPL->siguiente; // Avanzar a la siguiente playlist
+	}
+}
+
+void mostrarCanciones() {
+
+	NodoCancion *temp=InicioC;
+	printf("==Canciones disponibles==\n");
+	while(temp!=NULL) {
+		printf("%s-%s\n",temp->nombre,temp->artista);
+		temp= temp->siguiente;
+	}
+
+}
+
+void mostrarPlaylist(NodoUsuario *usuarioActual) {
+	NodoPlaylist *temp;
+	temp=usuarioActual->misPlaylists;
+
+	while(temp!=NULL) {
+
+		printf("Playlist: %s",temp->nombre);
+		temp=temp->siguiente;
+	}
+
+}
+
+void reproducirPlaylist(NodoUsuario *usuarioActual){
+	if (usuarioActual == NULL || usuarioActual -> misPlaylists ==NULL){
+		printf ("No existen playlists creadas\n");
+		return;
+	}
+
+	char nombreP[50];
+	getchar();
+	printf ("Ingrese el nombre de la playlist: ");
+	fgets (nombreP, sizeof(nombreP), stdin);
+	nombreP[strcspn(nombreP, "\n")]= '\0';
+
+	NodoPlaylist *playlist = buscarPlaylist(nombreP, usuarioActual);
+
+	if (playlist == NULL){
+		return;
+
+	}
+
+	if (playlist -> listaCanciones=NULL){
+		printf ("Esta playlist no contiene canciones para reproducir\n");
+		return;
+	}
+
+	NodoCancion *cancionActual = playlist -> listaCanciones;
+	int opcion = 0;
+	int enReproduccion = 1; //Si esta con 1 esta reproduciendo, en 0 en pausa
+
+}
+
+NodoPlaylist *eliminarPlaylist(NodoUsuario *usuarioActual) {
+	NodoPlaylist *temp;
+	NodoPlaylist *act=NULL;
+	temp=usuarioActual->misPlaylists;
+
+	char Dplay[50];
+	if(usuarioActual->misPlaylists==NULL) {
+
+		printf("No se encuentran playlist\n");
+		return NULL;
+	}
+
+	mostrarPlaylist(usuarioActual);
+	printf("Escriba el nombre de la playlist a borrar:");
+	fgets(Dplay,sizeof(Dplay),stdin);
+	Dplay[strcspn(Dplay,"\n")]='\0';
+	while(temp!=NULL) {
+		if(strcmp(Dplay,temp->nombre)==0) {
+			NodoCancion *borrarC=temp->listaCanciones;
+			while(borrarC!=NULL) {
+				NodoCancion *cancionAct=borrarC;
+				borrarC=borrarC->siguiente;
+				free(cancionAct);
+			}
+			if(act==NULL) {
+
+				usuarioActual->misPlaylists=temp->siguiente;
+
+			} else {
+				act->siguiente=temp->siguiente;
+			}
+			free(temp);
+			printf("Playlist eliminada correctamenten\n");
+			return usuarioActual->misPlaylists;
+
+		}
+
+		act=temp;
+		temp=temp->siguiente;
+	}
+	printf("No se encontro la playlist\n");
+	return usuarioActual->misPlaylists;
+
+}
+
+NodoUsuario *IniciarSesion(NodoUsuario *raiz) {
+	char correo[50];
+	char contrasena[50];
+	printf("Ingrese su correo: ");
+	scanf("%s", correo);
+	printf("Ingrese su contrasena: ");
+	scanf("%s", contrasena);
+
+	NodoUsuario *usuarioEncontrado = buscarUsuario(raiz, correo);
+
+	if (usuarioEncontrado != NULL && strcmp(usuarioEncontrado->contrasena, contrasena) == 0) {
+		printf("Inicio de sesion exitoso. Bienvenido, %s!\n", usuarioEncontrado->usuario);
+		return usuarioEncontrado;
+	} else {
+		printf("Usuario o contrasena incorrectos.\n");
+		return NULL;
+	}
+}
+
+
+NodoUsuario *Registrarse(NodoUsuario *raiz) {
+	char usuario[50];
+	char contrasena[50];
+	char paisOrigen[50];
+	char tipo[10];
+	char respuesta[10];
+	char correo[50];
+	int i = 0;
+	do {
+		printf("Escriba su correo electronico\n");
+		fgets(correo, 50, stdin);
+		correo[strcspn(correo, "\n")] = '\0';
+		i = verificacionCorreo(correo);
+	} while (i != 1);
+	printf("Ingrese su usuario: ");
+	scanf("%s", usuario);
+	printf("Ingrese su contrasena: ");
+	scanf("%s", contrasena);
+	printf("Ingrese su pais de origen: ");
+	scanf("%s", paisOrigen);
+	i = 0;
+	do {
+		printf("Ingrese el tipo de cuenta (premium o free): ");
+		scanf("%s", tipo);
+		i = verificacionPoF(tipo);
+	} while (i != 1);
+	if (strcmp(tipo, "premium") == 0) {
+		getchar();
+		printf("La cuenta premium tiene un costo de $9.99 al mes y puedes disfrutar de una experiencia sin anuncios.\n");
+		printf("Desea continuar con la cuenta premium? (s/n): ");
+		fgets(respuesta,10,stdin);
+		respuesta[strcspn(respuesta,"\n")]='\0';
+		if (respuesta[0] != 's' && respuesta[0] != 'S') {
+			printf("Registro cancelado. Volviendo al menu principal.\n");
+			return raiz;
+		}
+	}
+
+	raiz = insertarUsuario(raiz, paisOrigen, correo, usuario, contrasena, tipo);
+	printf("Registro exitoso. Bienvenido, %s!\n", usuario);
+	return raiz;
+}
+void Configuracion(NodoUsuario *usuarioActual) {
+	system("cls");
+	int opc;
+	char ver[10];
+	char cambio[50];
+	char respuesta[10];
+	printf("==Configuracion del Usuario==\n");
+	printf("1. Cambiar el nombre de usuario\n");
+	printf("2. Cambiar la contrasena\n");
+	printf("3. Cambiar el pais\n");
+	printf("4. Actualizar el plan\n");
+	printf("5. Volver\n");
+	scanf("%d", &opc);
+	getchar();
+	switch(opc) {
+		case 1: {
+			printf("Escriba su nuevo usuario\n");
+			fgets(cambio,50,stdin);
+			cambio[strcspn(cambio,"\n")]='\0';
+			printf("Seguro desea cambiar su usuario a %s", cambio);
+			fgets(ver,10,stdin);
+			ver[strcspn(ver,"\n")]='\0';
+			if(ver[0]=='s' || ver[0]=='S') {
+				strcpy(usuarioActual->usuario,cambio);
+			}
+			break;
+		}
+		case 2: {
+			char contrasenaAnt[50];
+			printf("Escriba su contrasena actual:");
+			fgets(contrasenaAnt,50,stdin);
+			contrasenaAnt[strcspn(contrasenaAnt,"\n")]='\0';
+			if(strcmp(contrasenaAnt,usuarioActual->contrasena)==0) {
+				printf("\nEscriba la nueva contrasena:");
+				fgets(cambio,50,stdin);
+				cambio[strcspn(cambio,"\n")]='\0';
+				printf("Seguro desea cambiar su contrasena");
+				fgets(ver,10,stdin);
+				ver[strcspn(ver,"\n")]='\0';
+				if(ver[0]=='s' || ver[0]=='S') {
+					strcpy(usuarioActual->contrasena,cambio);
+				}
+			}
+			break;
+		}
+		case 3: {
+			printf("Escriba su actual pais de residencia\n");
+			fgets(cambio,50,stdin);
+			cambio[strcspn(cambio,"\n")]='\0';
+			printf("Seguro desea cambiar su pais a %s", cambio);
+			fgets(ver,10,stdin);
+			ver[strcspn(ver,"\n")]='\0';
+			if(ver[0]=='s' || ver[0]=='S') {
+				strcpy(usuarioActual->paisOrigen,cambio);
+			}
+			break;
+		}
+		case 4: {
+			if(strcmp(usuarioActual->tipo,"premium")==0) {
+				printf("Desea cancelar su suscripcion?\n");
+				fgets(ver,10,stdin);
+				ver[strcspn(ver,"\n")]='\0';
+				if(ver[0]=='s' || ver[0]=='S') {
+					strcpy(usuarioActual->tipo,"free");
+				}
+				printf("Suscripcion cancelada\n");
+			} else if(strcmp(usuarioActual->tipo,"free")==0) {
+				printf("Desea comprar el plan premium?:");
+				fgets(ver,10,stdin);
+				ver[strcspn(ver,"\n")]='\0';
+				if(ver[0]=='s' || ver[0]=='S') {
+					printf("La cuenta premium tiene un costo de $9.99 al mes y puedes disfrutar de una experiencia sin anuncios.\n");
+					printf("Desea continuar con la cuenta premium? (s/n):");
+					fgets(respuesta,10,stdin);
+					respuesta[strcspn(respuesta,"\n")]='\0';
+					if(respuesta[0]=='s' || respuesta[0]=='S') {
+						strcpy(usuarioActual->tipo,"premium");
+						printf("Registro cpmletado disfruta tus beneficios premium\n");
+					} else {
+						printf("Suscripcion cancelada\n");
+					}
+				}
+			}
+
+			break;
+		}
+		case 5: {
+
+			break;
+		}
+		default: {
+			printf("Opcion no valida\n");
+		}
+
+	}
+}
+
+void menuPrincipal(NodoUsuario *usuarioActual) {
+	int opcion;
+	do {
+		printf("\n===Hola %s===\n", usuarioActual->usuario);
+		printf("1. Crear playlist\n");
+		printf("2. Eliminar playlist\n");
+		printf("3. Ver playlists y canciones\n");
+		printf("4. Agregar amigos\n");
+		printf("5. Ver canciones generales\n");
+		printf("6. Buscar canciones o artistas\n");
+		printf("7. Ver estadisticas\n");
+		printf("8. Configuracion\n");
+		printf("9. Cerrar sesion\n");
+		printf("Seleccione una opcion: ");
+		scanf("%d", &opcion);
+		switch (opcion) {
+			case 1: {
+				crearPlaylist(usuarioActual); // Enviamos el usuario logueado para modificar sus listas
+				break;
+			}
+			case 2: {
+				usuarioActual->misPlaylists=eliminarPlaylist(usuarioActual);
+				break;
+			}
+			case 3: {
+				verPlaylists(usuarioActual); // Llama a la nueva función de visualización
+				break;
+			}
+			case 4: {
+				printf("Agregando amigos..\n");
+				break;
+			}
+			case 5: {
+				mostrarCanciones();
+				break;
+			}
+			case 6: {
+				char busqueda[50];
+				printf("Escriba la cancion o artista a buscar\n");
+				getchar();
+				fgets(busqueda,sizeof(busqueda),stdin);
+				busqueda[strcspn(busqueda,"\n")]='\0';
+				NodoCancion *temp=buscarCancion(busqueda);
+				if (temp!=NULL){
+					printf("Encontrado: %s - %s\n", temp->nombre, temp->artista);
+				}
+
+				break;
+			}
+			case 7: {
+				printf("Mostrando estadisticas..\n");
+				break;
+			}
+			case 8: {
+				getchar();
+				Configuracion(usuarioActual);
+				break;
+			}
+			case 9: {
+				printf("Volviendo al menu principal..\n");
+				break;
+			}
+			default: {
+				printf("Opcion no valida\n");
+			}
+		}
+	} while (opcion != 9);
+}
+
 
 NodoUsuario *insertarUsuario(NodoUsuario *raiz, char paisOrigen[], char correo[], char user[], char pass[], char tipo[]) {
 	if (raiz == NULL) {
