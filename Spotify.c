@@ -124,7 +124,28 @@ FILE *archivoC= fopen("Canciones.txt","r");
 // ============================================================================
 // FUNCIONES DE PLAYLISTS Y CANCIONES (LOGICA IMPLEMENTADA)
 // ============================================================================
+NodoCancion *buscarCancion( char busqueda[]){
+	NodoCancion *temp;
+	temp=InicioC;
+	if(InicioC==NULL){
+		printf("No se encuentran canciones cargadas\n");
+		return NULL;
+	}
+    while(temp!=NULL){
+	if(strcmp(temp->nombre,busqueda)==0){
 
+		return temp;
+	}
+	if(strcmp(temp->artista,busqueda)==0){
+
+		return temp;
+	}
+	
+	}
+	printf("Cancion o artista no encontrado\n");
+
+    return NULL;
+}
 // Función para agregar canciones directamente a una playlist específica
 void agregarCancionAPlaylist(NodoPlaylist *playlist)
 {
@@ -134,8 +155,9 @@ void agregarCancionAPlaylist(NodoPlaylist *playlist)
 	scanf("%s", nombreCancion);
 
 	// Reservar memoria para la nueva canción
-	NodoCancion *nuevaCancion = (NodoCancion *)malloc(sizeof(NodoCancion));
-	strcpy(nuevaCancion->nombre, nombreCancion);
+	NodoCancion *nuevaCancion = buscarCancion(nombreCancion);
+
+	if(nuevaCancion!=NULL){
 	nuevaCancion->siguiente = NULL;
 
 	// Insertar la canción al inicio de la lista de canciones de esta playlist
@@ -149,6 +171,8 @@ void agregarCancionAPlaylist(NodoPlaylist *playlist)
 		playlist->listaCanciones = nuevaCancion;
 	}
 	printf("Cancion '%s' agregada a la playlist.\n", nombreCancion);
+	}
+	
 }
 
 // Función para crear la playlist asignada al usuario actual y luego preguntar si desea agregar canciones
@@ -178,7 +202,7 @@ void crearPlaylist(NodoUsuario *usuarioActual)
 		usuarioActual->misPlaylists = nuevaPlaylist;
 	}
 	printf("Playlist '%s' creada exitosamente.\n", nombrePlaylist);
-getchar();
+	getchar();
 	// Preguntar si desea añadir canciones en este momento
 	char respuesta;
 	printf("Desea agregar canciones a la playlist? (s/n): ");
@@ -236,6 +260,63 @@ void mostrarCanciones(){
 	}
 
 }
+
+void mostrarPlaylist(NodoUsuario *usuarioActual){
+NodoPlaylist *temp;
+temp=usuarioActual->misPlaylists;
+
+while(temp!=NULL){
+
+	printf("Playlist: %s",temp->nombre);
+	temp=temp->siguiente;
+}
+
+}
+
+NodoPlaylist *eliminarPlaylist(NodoUsuario *usuarioActual){
+NodoPlaylist *temp;
+NodoPlaylist *act=NULL;
+temp=usuarioActual->misPlaylists;
+
+	char Dplay[50];
+if(usuarioActual->misPlaylists==NULL){
+
+	printf("No se encuentran playlist\n");
+	return NULL;
+}
+
+mostrarPlaylist();
+printf("Escriba el nombre de la playlist a borrar:");
+fgets(Dplay,sizeof(Dplay),stdin);
+Dplay[strcspn(Dplay,"\n")]='\0';
+while(temp!=NULL){
+if(strcmp(Dplay,temp->nombre)==0){
+NodoCancion *borrarC=temp->listaCanciones;
+while(borrarC!=NULL){
+	NodoCancion *cancionAct=borrarC;
+	borrarC=borrarC->siguiente;
+	free(cancionAct);
+}	
+if(anterior==NULL){
+
+	usuarioActual->misPlaylists=temp->siguiente;
+
+}else{
+	act->siguiente=temp->siguiente;
+}
+free(temp);
+printf("Playlist eliminada correctamenten\n");
+return usuarioActual->misPlaylists;
+
+}
+
+act=temp;
+temp=temp->siguiente;
+}
+printf("No se encontro la playlist\n");
+return usuarioActual->misPlaylists;
+
+}
 // ============================================================================
 // FLUJO PRINCIPAL Y CONFIGURACIÓN DE USUARIOS
 // ============================================================================
@@ -262,7 +343,7 @@ NodoUsuario *IniciarSesion(NodoUsuario *raiz)
 		return NULL;
 	}
 }
-//terminado
+
 
 NodoUsuario *Registrarse(NodoUsuario *raiz)
 {
@@ -432,7 +513,7 @@ void menuPrincipal(NodoUsuario *usuarioActual)
 		}
 		case 2:
 		{
-			printf("Eliminando playlist..\n");
+			usuarioActual->misPlaylists=eliminarPlaylist(usuarioActual);
 			break;
 		}
 		case 3:
@@ -545,7 +626,7 @@ NodoUsuario *insertarUsuario(NodoUsuario *raiz, char paisOrigen[], char correo[]
 	}
 	return raiz;
 }
-//terminado
+
 
 NodoUsuario *buscarUsuario(NodoUsuario *raiz, char correo[])
 {
@@ -563,4 +644,3 @@ NodoUsuario *buscarUsuario(NodoUsuario *raiz, char correo[])
 		return buscarUsuario(raiz->der, correo);
 	}
 }
-//terminado
