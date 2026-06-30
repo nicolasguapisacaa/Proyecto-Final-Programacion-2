@@ -36,188 +36,35 @@ typedef struct NodoUsuario {
 	struct NodoUsuario *der;
 } NodoUsuario;
 
-//VERIFICACIONES
+typedef struct NodoAmigos{
 
-int verificacionCorreo(char correo[]) {
+	char nombre[50];
+	NodoUsuario *raiz;
+	struct NodoUsuario *izq;
+	struct NodoUsuario *der;
 
-	int j;
+}NodoAmigos;
 
-	for(j=0; correo[j]!='\0'; j++) {
-
-		if(correo[j]== '@') {
-			return 1;
-		}
-
-	}
-	printf("Correo no valido\n");
-	return 0;
-}
-
-int verificacionPoF(char tipo[]) {
-
-	if(strcmp(tipo,"premium")==0 || strcmp(tipo,"free")==0) {
-		return 1;
-	} else {
-		printf("Escriba correctamente el tipo de cuenta\n");
-		return 0;
-	}
-
-}
 // Prototipos de funciones
 NodoUsuario *insertarUsuario(NodoUsuario *raiz, char paisOrigen[],char correo[],char user[],char pass[],char tipo[]);//no cambiar de lugar
 NodoUsuario *buscarUsuario(NodoUsuario *raiz, char correo[]);
 void crearPlaylist(NodoUsuario *usuarioActual);		  // Recibe el usuario actual
 void agregarCancionAPlaylist(NodoPlaylist *playlist); // Recibe la playlist destino
 void verPlaylists(NodoUsuario *usuarioActual);		  // Nueva función para mostrar datos
-/
-/Funcion para cargar usuarios ya existentes
-NodoUsuario *cargarArchivoU(NodoUsuario *raiz) { //cada usuario que lea se manda a la funcion insercion para crear el abb
-	FILE *archivo = fopen("Usuarios.txt", "r");
-
-	if (archivo == NULL) {
-		printf("Error no se pudo abrir el archivo\n");
-		return raiz;
-	}
-
-	char linea[1000];
-	char *paisOrigen, *correo, *usuario, *contrasena, *tipo;
-
-	while (fgets(linea, sizeof(linea), archivo)) {
-		linea[strcspn(linea, "\n")] = '\0';
-		paisOrigen = strtok(linea, ";");
-		correo     = strtok(NULL, ";");
-		usuario    = strtok(NULL, ";");
-		contrasena = strtok(NULL, ";");
-		tipo       = strtok(NULL, ";");
-
-		if (paisOrigen && correo && usuario && contrasena && tipo) {
-			raiz = insertarUsuario(raiz, paisOrigen, correo, usuario, contrasena, tipo);
-		}
-	}
-
-	fclose(archivo);
-	printf("Usuarios cargados correctamente\n");
-	return raiz;
-}
-
-NodoCancion *insertarCancion (char cancion[],char artista[]) {
-	NodoCancion *nueva = malloc(sizeof(NodoCancion));
-	strcpy(nueva->nombre,cancion);
-	strcpy(nueva->artista,artista);
-	nueva->anterior=NULL;
-	nueva->siguiente=NULL;
-
-	if(InicioC==NULL) {
-		InicioC=nueva;
-		FinC=nueva;
-	} else {
-
-		nueva->anterior=FinC;
-		FinC->siguiente=nueva;
-		FinC=nueva;
-	}
-
-	return InicioC;
-}
-
-
-NodoCancion *archivoCancionesGenerales(NodoCancion *cancion) {
-	FILE *archivoC= fopen("Canciones.txt","r");
-	if(archivoC==NULL) {
-		printf("Error no se pudieron cargar las canciones disponibles\n");
-		return NULL;
-	}
-	char linea[100];
-	char *Titulo,*Artista;
-
-	while(fgets(linea,sizeof(linea),archivoC)) {
-
-		linea[strcspn(linea,"\n")]= '\0';
-		Titulo= strtok(linea,";");
-		Artista= strtok(NULL,";");
-		if(Titulo) {
-			InicioC = insertarCancion (Titulo,Artista);
-		}
-	}
-	printf("Canciones cargadas correctamente\n");
-
-	return InicioC;
-}
-
+int verificacionCorreo(char correo[]);
+int verificacionPoF(char tipo[]);
+NodoUsuario *cargarArchivoU(NodoUsuario *raiz);
+NodoCancion *insertarCancion (char cancion[],char artista[]);
+NodoCancion *archivoCancionesGenerales(NodoCancion *cancion);
+NodoCancion *buscarCancion( char busqueda[]);
+void agregarCancionAPlaylist(NodoPlaylist *playlist);
+NodoPlaylist *buscarPlaylist(char nombre[],NodoUsuario *usuarioAct);
 // ============================================================================
 // FUNCIONES DE PLAYLISTS Y CANCIONES (LOGICA IMPLEMENTADA)
 // ============================================================================
-NodoCancion *buscarCancion( char busqueda[]) {
-	NodoCancion *temp = InicioC;
-	if(InicioC==NULL) {
-		printf("No se encuentran canciones cargadas\n");
-		return NULL;
-	}
-	while(temp!=NULL) {
-		if(strcmp(temp->nombre, busqueda) == 0 || strcmp(temp->artista, busqueda) == 0) {
-			return temp;
-		}
-		temp=temp->siguiente; //Faltaba avanzar de cancion, sino se queda en bucle
 
-
-	}
-	printf("Cancion o artista no encontrado\n");
-
-	return NULL;
-}
 // Función para agregar canciones directamente a una playlist específica
-void agregarCancionAPlaylist(NodoPlaylist *playlist) {
 
-	char nombreCancion[50];
-	printf("Ingrese el nombre de la cancion: ");
-	scanf("%s", nombreCancion);
-
-	// Se busca la cancion en la lista de canciones disponibles
-	NodoCancion *encontrada = buscarCancion(nombreCancion);
-
-	if(encontrada!=NULL) {
-		//Aqui reservamos memoria para el nodo independiente en la playlist
-		NodoCancion *nuevaCancion = (NodoCancion *) malloc (sizeof(NodoCancion));
-		strcpy(nuevaCancion->nombre, encontrada->nombre);
-		strcpy (nuevaCancion->artista, encontrada->artista);
-		nuevaCancion->siguiente = NULL;
-		nuevaCancion->anterior = NULL;
-
-		// Insertar la canción al inicio de la lista de canciones de esta playlist
-		if (playlist->listaCanciones == NULL) {
-			playlist->listaCanciones = nuevaCancion;
-		} else {
-			nuevaCancion->siguiente = playlist->listaCanciones;
-			playlist->listaCanciones->anterior = nuevaCancion;
-			playlist->listaCanciones = nuevaCancion;
-		}
-		printf("Cancion '%s' agregada a la playlist.\n", nombreCancion);
-	}
-
-}
-
-NodoPlaylist *buscarPlaylist(char nombre[],NodoUsuario *usuarioAct) {
-
-	if(usuarioAct->misPlaylists==NULL) {
-
-		printf("No se encontro la playlist\n");
-		return NULL;
-	}
-
-	NodoPlaylist *temp=usuarioAct->misPlaylists;
-
-	while(temp!=NULL) {
-
-		if(strcmp(nombre,temp->nombre)==0) {
-			return temp;
-
-		}
-		temp=temp->siguiente; //Lo mismo, se quedaba en bucle porque no avanzaba
-
-	}
-	printf("No se encontro la playlist\n");
-	return NULL;
-}
 
 // Función para crear la playlist asignada al usuario actual y luego preguntar si desea agregar canciones
 void crearPlaylist(NodoUsuario *usuarioActual) {
@@ -250,8 +97,8 @@ void crearPlaylist(NodoUsuario *usuarioActual) {
 
 	while (respuesta == 's' || respuesta == 'S') {
 		agregarCancionAPlaylist(nuevaPlaylist); // Le pasamos la playlist que acabamos de crear
-		printf("¿Desea agregar otra cancion? (s/n): ");
-		scanf("%c", &respuesta);
+		printf("Desea agregar otra cancion? (s/n):");
+		scanf(" %c", &respuesta);
 	}
 }
 
@@ -306,7 +153,7 @@ void mostrarPlaylist(NodoUsuario *usuarioActual) {
 }
 
 void reproducirPlaylist(NodoUsuario *usuarioActual){
-	if (usuarioActual == NULL || usuarioActual -> misPlaylist ==NULL){
+	if (usuarioActual == NULL || usuarioActual -> misPlaylists ==NULL){
 		printf ("No existen playlists creadas\n");
 		return;
 	}
@@ -648,6 +495,175 @@ int main() {
 	} while (opcion != 3);
 
 	return 0;
+}
+
+//Verificaciones
+int verificacionCorreo(char correo[]) {
+
+	int j;
+
+	for(j=0; correo[j]!='\0'; j++) {
+
+		if(correo[j]== '@') {
+			return 1;
+		}
+
+	}
+	printf("Correo no valido\n");
+	return 0;
+}
+
+int verificacionPoF(char tipo[]) {
+
+	if(strcmp(tipo,"premium")==0 || strcmp(tipo,"free")==0) {
+		return 1;
+	} else {
+		printf("Escriba correctamente el tipo de cuenta\n");
+		return 0;
+	}
+
+}
+
+//Cargar usuarios ya existentes 
+NodoUsuario *cargarArchivoU(NodoUsuario *raiz) { //cada usuario que lea se manda a la funcion insercion para crear el abb
+	FILE *archivo = fopen("Usuarios.txt", "r");
+
+	if (archivo == NULL) {
+		printf("Error no se pudo abrir el archivo\n");
+		return raiz;
+	}
+
+	char linea[1000];
+	char *paisOrigen, *correo, *usuario, *contrasena, *tipo;
+
+	while (fgets(linea, sizeof(linea), archivo)) {
+		linea[strcspn(linea, "\n")] = '\0';
+		paisOrigen = strtok(linea, ";");
+		correo     = strtok(NULL, ";");
+		usuario    = strtok(NULL, ";");
+		contrasena = strtok(NULL, ";");
+		tipo       = strtok(NULL, ";");
+
+		if (paisOrigen && correo && usuario && contrasena && tipo) {
+			raiz = insertarUsuario(raiz, paisOrigen, correo, usuario, contrasena, tipo);
+		}
+	}
+
+	fclose(archivo);
+	printf("Usuarios cargados correctamente\n");
+	return raiz;
+}
+
+NodoCancion *insertarCancion (char cancion[],char artista[]) {
+	NodoCancion *nueva = malloc(sizeof(NodoCancion));
+	strcpy(nueva->nombre,cancion);
+	strcpy(nueva->artista,artista);
+	nueva->anterior=NULL;
+	nueva->siguiente=NULL;
+
+	if(InicioC==NULL) {
+		InicioC=nueva;
+		FinC=nueva;
+	} else {
+
+		nueva->anterior=FinC;
+		FinC->siguiente=nueva;
+		FinC=nueva;
+	}
+
+	return InicioC;
+}
+
+NodoCancion *archivoCancionesGenerales(NodoCancion *cancion) {
+	FILE *archivoC= fopen("Canciones.txt","r");
+	if(archivoC==NULL) {
+		printf("Error no se pudieron cargar las canciones disponibles\n");
+		return NULL;
+	}
+	char linea[100];
+	char *Titulo,*Artista;
+
+	while(fgets(linea,sizeof(linea),archivoC)) {
+
+		linea[strcspn(linea,"\n")]= '\0';
+		Titulo= strtok(linea,";");
+		Artista= strtok(NULL,";");
+		if(Titulo) {
+			InicioC = insertarCancion (Titulo,Artista);
+		}
+	}
+	printf("Canciones cargadas correctamente\n");
+
+	return InicioC;
+}
+NodoCancion *buscarCancion( char busqueda[]) {
+	NodoCancion *temp = InicioC;
+	if(InicioC==NULL) {
+		printf("No se encuentran canciones cargadas\n");
+		return NULL;
+	}
+	while(temp!=NULL) {
+		if(strcmp(temp->nombre, busqueda) == 0 || strcmp(temp->artista, busqueda) == 0) {
+			return temp;
+		}
+		temp=temp->siguiente; //Faltaba avanzar de cancion, sino se queda en bucle
+
+
+	}
+	printf("Cancion o artista no encontrado\n");
+
+	return NULL;
+}
+void agregarCancionAPlaylist(NodoPlaylist *playlist) {
+
+	char nombreCancion[50];
+	printf("Ingrese el nombre de la cancion: ");
+	scanf("%s", nombreCancion);
+
+	// Se busca la cancion en la lista de canciones disponibles
+	NodoCancion *encontrada = buscarCancion(nombreCancion);
+
+	if(encontrada!=NULL) {
+		//Aqui reservamos memoria para el nodo independiente en la playlist
+		NodoCancion *nuevaCancion = (NodoCancion *) malloc (sizeof(NodoCancion));
+		strcpy(nuevaCancion->nombre, encontrada->nombre);
+		strcpy (nuevaCancion->artista, encontrada->artista);
+		nuevaCancion->siguiente = NULL;
+		nuevaCancion->anterior = NULL;
+
+		// Insertar la canción al inicio de la lista de canciones de esta playlist
+		if (playlist->listaCanciones == NULL) {
+			playlist->listaCanciones = nuevaCancion;
+		} else {
+			nuevaCancion->siguiente = playlist->listaCanciones;
+			playlist->listaCanciones->anterior = nuevaCancion;
+			playlist->listaCanciones = nuevaCancion;
+		}
+		printf("Cancion '%s' agregada a la playlist.\n", nombreCancion);
+	}
+
+}
+NodoPlaylist *buscarPlaylist(char nombre[],NodoUsuario *usuarioAct) {
+
+	if(usuarioAct->misPlaylists==NULL) {
+
+		printf("No se encontro la playlist\n");
+		return NULL;
+	}
+
+	NodoPlaylist *temp=usuarioAct->misPlaylists;
+
+	while(temp!=NULL) {
+
+		if(strcmp(nombre,temp->nombre)==0) {
+			return temp;
+
+		}
+		temp=temp->siguiente; //Lo mismo, se quedaba en bucle porque no avanzaba
+
+	}
+	printf("No se encontro la playlist\n");
+	return NULL;
 }
 
 NodoUsuario *insertarUsuario(NodoUsuario *raiz, char paisOrigen[], char correo[], char user[], char pass[], char tipo[]) {
