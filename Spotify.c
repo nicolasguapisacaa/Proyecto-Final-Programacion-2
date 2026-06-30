@@ -69,7 +69,8 @@ NodoUsuario *buscarUsuario(NodoUsuario *raiz, char correo[]);
 void crearPlaylist(NodoUsuario *usuarioActual);		  // Recibe el usuario actual
 void agregarCancionAPlaylist(NodoPlaylist *playlist); // Recibe la playlist destino
 void verPlaylists(NodoUsuario *usuarioActual);		  // Nueva función para mostrar datos
-//Funcion para cargar usuarios ya existentes
+/
+/Funcion para cargar usuarios ya existentes
 NodoUsuario *cargarArchivoU(NodoUsuario *raiz) { //cada usuario que lea se manda a la funcion insercion para crear el abb
 	FILE *archivo = fopen("Usuarios.txt", "r");
 
@@ -147,21 +148,17 @@ NodoCancion *archivoCancionesGenerales(NodoCancion *cancion) {
 // FUNCIONES DE PLAYLISTS Y CANCIONES (LOGICA IMPLEMENTADA)
 // ============================================================================
 NodoCancion *buscarCancion( char busqueda[]) {
-	NodoCancion *temp;
-	temp=InicioC;
+	NodoCancion *temp = InicioC;
 	if(InicioC==NULL) {
 		printf("No se encuentran canciones cargadas\n");
 		return NULL;
 	}
 	while(temp!=NULL) {
-		if(strcmp(temp->nombre,busqueda)==0) {
-
+		if(strcmp(temp->nombre, busqueda) == 0 || strcmp(temp->artista, busqueda) == 0) {
 			return temp;
 		}
-		if(strcmp(temp->artista,busqueda)==0) {
+		temp=temp->siguiente; //Faltaba avanzar de cancion, sino se queda en bucle
 
-			return temp;
-		}
 
 	}
 	printf("Cancion o artista no encontrado\n");
@@ -175,17 +172,23 @@ void agregarCancionAPlaylist(NodoPlaylist *playlist) {
 	printf("Ingrese el nombre de la cancion: ");
 	scanf("%s", nombreCancion);
 
-	// Reservar memoria para la nueva canción
-	NodoCancion *nuevaCancion = buscarCancion(nombreCancion);
+	// Se busca la cancion en la lista de canciones disponibles
+	NodoCancion *encontrada = buscarCancion(nombreCancion);
 
-	if(nuevaCancion!=NULL) {
+	if(encontrada!=NULL) {
+		//Aqui reservamos memoria para el nodo independiente en la playlist
+		NodoCancion *nuevaCancion = (NodoCancion *) malloc (sizeof(NodoCancion));
+		strcpy(nuevaCancion->nombre, encontrada->nombre);
+		strcpy (nuevaCancion->artista, encontrada->artista);
 		nuevaCancion->siguiente = NULL;
+		nuevaCancion->anterior = NULL;
 
 		// Insertar la canción al inicio de la lista de canciones de esta playlist
 		if (playlist->listaCanciones == NULL) {
 			playlist->listaCanciones = nuevaCancion;
 		} else {
 			nuevaCancion->siguiente = playlist->listaCanciones;
+			playlist->listaCanciones->anterior = nuevaCancion;
 			playlist->listaCanciones = nuevaCancion;
 		}
 		printf("Cancion '%s' agregada a la playlist.\n", nombreCancion);
@@ -209,9 +212,11 @@ NodoPlaylist *buscarPlaylist(char nombre[],NodoUsuario *usuarioAct) {
 			return temp;
 
 		}
+		temp=temp->siguiente; //Lo mismo, se quedaba en bucle porque no avanzaba
 
 	}
 	printf("No se encontro la playlist\n");
+	return NULL;
 }
 
 // Función para crear la playlist asignada al usuario actual y luego preguntar si desea agregar canciones
@@ -547,10 +552,13 @@ void menuPrincipal(NodoUsuario *usuarioActual) {
 			case 6: {
 				char busqueda[50];
 				printf("Escriba la cancion o artista a buscar\n");
+				getchar();
 				fgets(busqueda,sizeof(busqueda),stdin);
 				busqueda[strcspn(busqueda,"\n")]='\0';
 				NodoCancion *temp=buscarCancion(busqueda);
-				free(temp);
+				if (temp!=NULL){
+					printf("Encontrado: %s - %s\n", temp->nombre, temp->artista);
+				}
 
 				break;
 			}
@@ -617,19 +625,22 @@ NodoUsuario *insertarUsuario(NodoUsuario *raiz, char paisOrigen[], char correo[]
 		strcpy(nuevo->usuario, user);
 		strcpy(nuevo->contrasena, pass);
 		strcpy(nuevo->tipo, tipo);
-		nuevo->misPlaylists = NULL; // CAMBIO CLAVE: Inicializar el puntero de playlists en NULL
+		nuevo->misPlaylists = NULL; 
 		nuevo->izq = NULL;
 		nuevo->der = NULL;
 		return nuevo;
 	}
 
-	int comparacion = strcmp(user, raiz->usuario);
+
+	//Aqui cambie para que se busque por correo, porque despues igual en buscar
+	//Usuario estas buscando con correo xd para que todo sea general
+	int comparacion = strcmp(correo, raiz->correo);
 	if (comparacion < 0) {
 		raiz->izq = insertarUsuario(raiz->izq, paisOrigen, correo, user, pass, tipo);
 	} else if (comparacion > 0) {
 		raiz->der = insertarUsuario(raiz->der, paisOrigen, correo, user, pass, tipo);
 	} else {
-		printf("El usuario ya existe.\n");
+		printf("El correo ya esta registrado.\n");
 	}
 	return raiz;
 }
