@@ -1,24 +1,8 @@
-/* ============================================================================
- * SPOTIFY EN C - TRABAJO FINAL PROGRAMACION II
- * ----------------------------------------------------------------------------
- * Estructuras dinamicas usadas (segun lo pedido en el enunciado):
- *   - ABB (Arbol Binario de Busqueda) -> Usuarios (clave: correo)
- *   - ABB (Arbol Binario de Busqueda) -> Artistas (clave: nombre)
- *   - Listas ligadas                  -> Discos de un artista
- *   - Listas ligadas                  -> Canciones de un disco
- *   - Listas ligadas                  -> Playlists de un usuario
- *   - Listas ligadas (doble)          -> Canciones dentro de una playlist
- *   - Listas ligadas                  -> Amigos de un usuario
- *   - Listas ligadas                  -> Historial de planes premium comprados
- *   - Pila (lista ligada LIFO)        -> Historial de reproduccion de un usuario
- *   - Cola (lista ligada FIFO)        -> Anuncios publicitarios
- * ============================================================================ */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#define MAX_COLECCION 1000   /* tope para recolectar canciones al generar reportes */
+#define MAX_COLECCION 1000   
 
 /* ============================================================================
  *  ESTRUCTURAS DE DATOS
@@ -1622,7 +1606,7 @@ void submenuPremium(NodoUsuario *usuarioActual) {
     } while (opcion != 3);
 }
 
-/* Permite editar los datos del perfil (UPDATE dentro del CRUD de usuarios). */
+/ Permite editar los datos del perfil
 void Configuracion(NodoUsuario *usuarioActual) {
     int opc;
     char ver[10], cambio[50];
@@ -1699,9 +1683,6 @@ void menuPrincipal(NodoUsuario *usuarioActual, NodoUsuario *raizUsuarios) {
             default: printf("Opcion no valida\n");
         }
     } while (opcion != 8);
-
-    /* Se guardan los datos cada vez que el usuario cierra sesion, ademas de
-     * guardarse tambien al cerrar todo el programa. */
     guardarUsuarios(raizUsuarios);
     guardarCatalogo();
 }
@@ -1727,8 +1708,6 @@ NodoUsuario *IniciarSesion(NodoUsuario *raiz) {
     return NULL;
 }
 
-/* Pide los datos de un usuario nuevo (CREATE del CRUD de usuarios), valida
- * correo y tipo de plan, y lo inserta en el ABB. */
 NodoUsuario *Registrarse(NodoUsuario *raiz) {
     char correo[50], nombreReal[50], nickname[50], contrasena[50], paisOrigen[50], tipo[10];
     int i;
