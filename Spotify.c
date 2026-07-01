@@ -177,7 +177,7 @@ void menuPrincipal(NodoUsuario *usuarioActual, NodoUsuario *raizUsuarios);
 NodoUsuario *IniciarSesion(NodoUsuario *raiz);
 NodoUsuario *Registrarse(NodoUsuario *raiz);
 
-int main(void) {
+int main() {
     NodoUsuario *raizUsuarios = NULL;
     NodoUsuario *usuarioActual = NULL;
     int opcion;
