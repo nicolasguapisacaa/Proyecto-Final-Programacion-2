@@ -187,7 +187,7 @@ int main(void) {
     cargarAnuncios();
 
     do {
-        printf("\n========== SPOTIFY (consola) ==========\n");
+        printf("\n========== SPOTIFY Chino ==========\n");
         printf("1. Iniciar Sesion\n");
         printf("2. Registrarse\n");
         printf("3. Salir\n");
@@ -994,7 +994,7 @@ void mostrarHistorial(NodoUsuario *usuarioActual) {
         printf("Aun no tienes historial de reproduccion.\n");
         return;
     }
-    printf("\n=== HISTORIAL (de la ultima a la primera reproduccion) ===\n");
+    printf("\n=== HISTORIAL ===\n");
     NodoHistorial *temp = usuarioActual->historial;
     while (temp != NULL) {
         printf("- %s (%02d/%02d/%d)\n", temp->cancion->nombre, temp->fecha.dia, temp->fecha.mes, temp->fecha.anio);
@@ -1239,7 +1239,7 @@ void reporteArtistaPreferido(NodoUsuario *u) {
 
     FILE *f = fopen(nombreArchivo, "w");
     if (f == NULL) { printf("No se pudo crear el reporte.\n"); return; }
-    fprintf(f, "===== ARTISTA(S) PREFERIDO(S) DE %s =====\n", u->nickname);
+    fprintf(f, "===== ARTISTAS PREFERIDOS DE %s =====\n", u->nickname);
     if (total == 0) {
         fprintf(f, "Aun no hay historial de reproduccion.\n");
     } else {
