@@ -4,85 +4,57 @@
 
 #define MAX_COLECCION 1000   
 
-/* ============================================================================
- *  ESTRUCTURAS DE DATOS
- * ============================================================================ */
-
-/* Fecha generica usada para reproducciones, discos y planes premium.
- * Se valida que dia/mes/anio tengan rangos logicos al momento de pedirla. */
-typedef struct {
+typedef struct Fecha {
     int dia, mes, anio;
 } Fecha;
 
-/* ---- Cancion -------------------------------------------------------------
- * Nodo "maestro" que vive colgado de un disco/artista. Las playlists NO
- * copian la cancion, solo guardan un PUNTERO a este nodo (asi evitamos
- * datos duplicados y podemos saber si una cancion esta en uso por alguna
- * playlist mediante el contador enPlaylists, requisito para poder borrarla). */
 typedef struct NodoCancion {
     char nombre[60];
-    char artista[50];          /* nombre del artista, copia rapida para imprimir */
-    int duracionSeg;           /* duracion en segundos */
-    char archivoOrigen[120];   /* ruta del MP3, URL, etc. */
-    char tipoArchivo[10];      /* "MP3", "URL" u "OTRO" */
-    int reproducciones;        /* veces que se ha reproducido (para Top 5) */
-    int enPlaylists;           /* cuantas playlists la usan (controla el borrado) */
+    char artista[50];          
+    int duracionSeg;          
+    char archivoOrigen[120]; 
+    char tipoArchivo[10];     
+    int reproducciones;        
+    int enPlaylists;           
     struct NodoCancion *siguiente;
 } NodoCancion;
 
-/* ---- Disco -----------------------------------------------------------------
- * Lista ligada de canciones propias del disco. Cada artista tiene una lista
- * ligada de discos. Un disco debe tener al menos una cancion. */
 typedef struct NodoDisco {
     char nombre[60];
     Fecha fechaLanzamiento;
-    NodoCancion *canciones;     /* cabeza de la lista ligada de canciones */
+    NodoCancion *canciones;    
     struct NodoDisco *siguiente;
 } NodoDisco;
 
-/* ---- Artista (ABB) ---------------------------------------------------------
- * Arbol binario de busqueda ordenado por nombre del artista. Un artista debe
- * tener al menos un disco. */
 typedef struct NodoArtista {
     char nombre[50];
-    NodoDisco *discos;          /* cabeza de la lista ligada de discos */
+    NodoDisco *discos;          
     struct NodoArtista *izq, *der;
 } NodoArtista;
 
-/* ---- Cancion dentro de una Playlist -----------------------------------------
- * Nodo de lista doblemente ligada que SOLO referencia (puntero) a la cancion
- * maestra del catalogo de artistas. */
 typedef struct NodoPlaylistCancion {
     NodoCancion *cancion;
     struct NodoPlaylistCancion *siguiente;
     struct NodoPlaylistCancion *anterior;
 } NodoPlaylistCancion;
 
-/* ---- Playlist ----------------------------------------------------------- */
 typedef struct NodoPlaylist {
     char nombre[50];
-    NodoPlaylistCancion *canciones; /* lista doble de canciones de la playlist */
+    NodoPlaylistCancion *canciones; 
     struct NodoPlaylist *siguiente;
 } NodoPlaylist;
 
-/* ---- Amigo (lista ligada) -------------------------------------------------
- * Guarda un puntero directo al nodo del amigo dentro del ABB de usuarios. */
 typedef struct NodoAmigo {
     struct NodoUsuario *amigo;
     struct NodoAmigo *siguiente;
 } NodoAmigo;
 
-/* ---- Historial de reproduccion (PILA) -------------------------------------
- * Cada vez que se reproduce una cancion se hace "push" al tope. Para mostrar
- * el historial de la mas reciente a la mas antigua basta con recorrer la
- * pila desde el tope, que es exactamente lo que pide el enunciado. */
 typedef struct NodoHistorial {
     NodoCancion *cancion;
     Fecha fecha;
-    struct NodoHistorial *siguiente; /* apunta hacia la reproduccion anterior */
+    struct NodoHistorial *siguiente; 
 } NodoHistorial;
 
-/* ---- Registro de compra/renovacion de plan premium (lista ligada) -------- */
 typedef struct NodoPlanPremium {
     Fecha fechaCompra;
     int validezDias;
@@ -90,71 +62,61 @@ typedef struct NodoPlanPremium {
     struct NodoPlanPremium *siguiente;
 } NodoPlanPremium;
 
-/* ---- Usuario (ABB, clave = correo) ---------------------------------------- */
 typedef struct NodoUsuario {
     char correo[50];
-    char nombre[50];        /* nombre real de la persona */
-    char nickname[50];      /* alias visible */
+    char nombre[50];        
+    char nickname[50];     
     char paisOrigen[50];
     char contrasena[50];
-    char plan[10];           /* "premium" o "free" */
-    int  cancionesDesdeAnuncio; /* contador para insertar anuncio cada 3 canciones */
-    int  anunciosEscuchados;   /* estadistica: solo crece para usuarios free */
-    int  tiempoTotalSeg;       /* estadistica: suma de duracion de lo reproducido */
+    char plan[10];           
+    int  cancionesDesdeAnuncio;
+    int  anunciosEscuchados;   
+    int  tiempoTotalSeg;       
     NodoPlaylist     *misPlaylists;
     NodoAmigo        *misAmigos;
-    NodoHistorial    *historial;       /* tope de la pila de reproduccion */
-    NodoPlanPremium  *historialPlanes; /* lista de compras/renovaciones premium */
+    NodoHistorial    *historial;       
+    NodoPlanPremium  *historialPlanes; 
     struct NodoUsuario *izq, *der;
 } NodoUsuario;
 
-/* ---- Anuncio y Cola de anuncios (FIFO) ------------------------------------ */
 typedef struct NodoAnuncio {
-    char contenido[120];   /* texto, ruta de MP3, etc. */
+    char contenido[120];   
     char anunciante[50];
     struct NodoAnuncio *siguiente;
 } NodoAnuncio;
 
 typedef struct {
-    NodoAnuncio *frente; /* por donde se desencola (se reproduce) */
-    NodoAnuncio *final;  /* por donde se encola (se agrega) */
+    NodoAnuncio *frente; 
+    NodoAnuncio *final;  
 } ColaAnuncios;
 
-/* ============================================================================
- *  VARIABLES GLOBALES
- * ============================================================================ */
-NodoArtista  *raizArtistas = NULL;   /* ABB de artistas */
-NodoUsuario  *raizUsuariosGlobal = NULL; /* usada solo para guardar al salir */
+/* VARIABLES GLOBALES*/
+
+NodoArtista  *raizArtistas = NULL; 
+NodoUsuario  *raizUsuariosGlobal = NULL;
 ColaAnuncios  colaAnuncios = {NULL, NULL};
 
-/* Arreglo auxiliar usado unicamente para recolectar canciones al armar
- * reportes (Top 5). No reemplaza ninguna estructura dinamica pedida. */
 NodoCancion *coleccionTemp[MAX_COLECCION];
 int totalColeccionTemp = 0;
 
-/* ============================================================================
- *  PROTOTIPOS
- * ============================================================================ */
-/* Validaciones */
+/* Prototipos de funciones a usar */
 int  verificacionCorreo(char correo[]);
 int  verificacionPoF(char tipo[]);
 int  pedirFechaValida(const char *mensaje, Fecha *f);
 
-/* Persistencia */
 NodoUsuario *cargarArchivoU(NodoUsuario *raiz);
 void cargarCatalogo(void);
 void cargarAnuncios(void);
 void guardarUsuarios(NodoUsuario *raiz);
 void guardarUsuariosRec(NodoUsuario *raiz, FILE *archivo);
 void guardarCatalogo(void);
-
-/* ABB Usuarios (CRUD) */
+//manejo datos usuario
 NodoUsuario *insertarUsuario(NodoUsuario *raiz, char nombreReal[], char paisOrigen[], char correo[], char nick[], char pass[], char tipo[]);
 NodoUsuario *buscarUsuario(NodoUsuario *raiz, char correo[]);
 NodoUsuario *eliminarUsuario(NodoUsuario *raiz, char correo[]);
 void actualizarUsuario(NodoUsuario *u); /* delega en Configuracion() */
 
-/* ABB Artistas / Discos / Canciones (CRUD canciones) */
+//anejo canciones
 NodoArtista *buscarArtista(NodoArtista *raiz, char nombre[]);
 NodoArtista *insertarArtista(NodoArtista *raiz, char nombre[]);
 NodoDisco   *buscarDisco(NodoArtista *artista, char nombreDisco[]);
@@ -170,12 +132,11 @@ void mostrarCancionesDeDisco(NodoDisco *d);
 void buscarPorArtista(void);
 void crearCancionInteractivo(void);
 
-/* Cola de anuncios */
 void encolarAnuncio(char contenido[], char anunciante[]);
 NodoAnuncio *desencolarAnuncio(void);
 void mostrarAnuncio(NodoAnuncio *a);
 
-/* Playlists */
+// Playlists 
 void crearPlaylist(NodoUsuario *usuarioActual);
 void agregarCancionAPlaylist(NodoPlaylist *playlist);
 void quitarCancionDePlaylist(NodoPlaylist *playlist);
@@ -184,23 +145,21 @@ void mostrarPlaylist(NodoUsuario *usuarioActual);
 NodoPlaylist *buscarPlaylist(char nombre[], NodoUsuario *usuarioAct);
 void eliminarPlaylist(NodoUsuario *usuarioActual);
 
-/* Reproduccion */
 void reproducirPlaylist(NodoUsuario *usuarioActual);
 void registrarReproduccion(NodoUsuario *usuarioActual, NodoCancion *c);
 void mostrarHistorial(NodoUsuario *usuarioActual);
 
-/* Amigos y recomendaciones */
+//amigos
 int  existeAmigo(NodoUsuario *usuarioActual, NodoUsuario *candidato);
 void verAmigos(NodoUsuario *usuarioActual);
 void agregarAmigo(NodoUsuario *usuarioActual, NodoUsuario *raizUsuarios);
 void eliminarAmigo(NodoUsuario *usuarioActual);
 void recomendarPorAmigos(NodoUsuario *usuarioActual);
 
-/* Plan premium */
 void comprarPremium(NodoUsuario *usuarioActual);
 void renovarPremium(NodoUsuario *usuarioActual);
 
-/* Estadisticas / reportes */
+// Estadisticas
 void recolectarCanciones(NodoArtista *raiz);
 void reporteTop5Canciones(void);
 void reporteArtistaPreferido(NodoUsuario *u);
@@ -208,7 +167,7 @@ void reporteTiempoTotal(NodoUsuario *u);
 void reporteAnunciosMostrados(NodoUsuario *u);
 void generarTodosLosReportes(NodoUsuario *u);
 
-/* Menus */
+//Menus 
 void submenuPlaylists(NodoUsuario *usuarioActual);
 void submenuCatalogo(NodoUsuario *usuarioActual);
 void submenuAmigos(NodoUsuario *usuarioActual, NodoUsuario *raizUsuarios);
@@ -218,15 +177,11 @@ void menuPrincipal(NodoUsuario *usuarioActual, NodoUsuario *raizUsuarios);
 NodoUsuario *IniciarSesion(NodoUsuario *raiz);
 NodoUsuario *Registrarse(NodoUsuario *raiz);
 
-/* ============================================================================
- *  MAIN
- * ============================================================================ */
 int main(void) {
     NodoUsuario *raizUsuarios = NULL;
     NodoUsuario *usuarioActual = NULL;
     int opcion;
 
-    /* Carga inicial de datos de prueba / persistidos */
     raizUsuarios = cargarArchivoU(raizUsuarios);
     cargarCatalogo();
     cargarAnuncios();
@@ -258,18 +213,12 @@ int main(void) {
         }
     } while (opcion != 3);
 
-    /* Persistencia al cerrar el programa */
     guardarUsuarios(raizUsuarios);
     guardarCatalogo();
 
     return 0;
 }
 
-/* ============================================================================
- *  VALIDACIONES
- * ============================================================================ */
-
-/* Revisa que el correo contenga un '@'. Devuelve 1 si es valido, 0 si no. */
 int verificacionCorreo(char correo[]) {
     int j;
     for (j = 0; correo[j] != '\0'; j++) {
@@ -281,7 +230,6 @@ int verificacionCorreo(char correo[]) {
     return 0;
 }
 
-/* Revisa que el tipo de plan escrito sea "premium" o "free". */
 int verificacionPoF(char tipo[]) {
     if (strcmp(tipo, "premium") == 0 || strcmp(tipo, "free") == 0) {
         return 1;
@@ -290,12 +238,10 @@ int verificacionPoF(char tipo[]) {
     return 0;
 }
 
-/* Pide una fecha por teclado (dd mm aaaa) validando rangos basicos.
- * Se reintenta hasta obtener una fecha logicamente valida. */
 int pedirFechaValida(const char *mensaje, Fecha *f) {
     int ok = 0;
     do {
-        printf("%s (formato: dia mes anio, ej. 15 6 2026): ", mensaje);
+        printf("%s (formato: dia mes anio): ", mensaje);
         scanf("%d %d %d", &f->dia, &f->mes, &f->anio);
         if (f->mes < 1 || f->mes > 12 || f->dia < 1 || f->dia > 31 || f->anio < 1900 || f->anio > 2100) {
             printf("Fecha no valida, intente de nuevo.\n");
@@ -306,12 +252,6 @@ int pedirFechaValida(const char *mensaje, Fecha *f) {
     return 1;
 }
 
-/* ============================================================================
- *  PERSISTENCIA: CARGA DE ARCHIVOS
- * ============================================================================ */
-
-/* Carga usuarios desde "Usuarios.txt" (formato:
- * correo;nombre;nickname;pais;contrasena;plan) y los inserta en el ABB. */
 NodoUsuario *cargarArchivoU(NodoUsuario *raiz) {
     FILE *archivo = fopen("Usuarios.txt", "r");
     if (archivo == NULL) {
@@ -342,9 +282,7 @@ NodoUsuario *cargarArchivoU(NodoUsuario *raiz) {
 }
 
 /* Carga el catalogo de artistas/discos/canciones desde "Canciones.txt".
- * Formato esperado por linea:
- * artista;disco;diaDisco;mesDisco;anioDisco;cancion;duracionSeg;archivo;tipo
- * Si el artista o el disco no existen, se crean automaticamente. */
+  artista;disco;diaDisco;mesDisco;anioDisco;cancion;duracionSeg;archivo;tipo*/
 void cargarCatalogo(void) {
     FILE *archivo = fopen("Canciones.txt", "r");
     if (archivo == NULL) {
@@ -379,8 +317,6 @@ void cargarCatalogo(void) {
     printf("Catalogo de artistas/discos/canciones cargado correctamente\n");
 }
 
-/* Carga los anuncios disponibles desde "Anuncios.txt" (formato:
- * contenido;anunciante) y los encola en la cola global de anuncios. */
 void cargarAnuncios(void) {
     FILE *archivo = fopen("Anuncios.txt", "r");
     if (archivo == NULL) {
@@ -403,11 +339,6 @@ void cargarAnuncios(void) {
     printf("Anuncios cargados correctamente\n");
 }
 
-/* ============================================================================
- *  PERSISTENCIA: GUARDADO DE ARCHIVOS
- * ============================================================================ */
-
-/* Recorre el ABB de usuarios en orden y escribe cada usuario en el archivo. */
 void guardarUsuariosRec(NodoUsuario *raiz, FILE *archivo) {
     if (raiz == NULL) return;
     guardarUsuariosRec(raiz->izq, archivo);
@@ -417,7 +348,6 @@ void guardarUsuariosRec(NodoUsuario *raiz, FILE *archivo) {
     guardarUsuariosRec(raiz->der, archivo);
 }
 
-/* Sobreescribe "Usuarios.txt" con el estado actual del ABB de usuarios. */
 void guardarUsuarios(NodoUsuario *raiz) {
     FILE *archivo = fopen("Usuarios.txt", "w");
     if (archivo != NULL) {
@@ -426,8 +356,7 @@ void guardarUsuarios(NodoUsuario *raiz) {
     }
 }
 
-/* Recorre el ABB de artistas (in-order) y, por cada disco y cancion,
- * escribe una linea en "Canciones.txt" con el mismo formato de carga. */
+
 void guardarCatalogoRec(NodoArtista *raiz, FILE *archivo) {
     if (raiz == NULL) return;
     guardarCatalogoRec(raiz->izq, archivo);
@@ -447,7 +376,6 @@ void guardarCatalogoRec(NodoArtista *raiz, FILE *archivo) {
     guardarCatalogoRec(raiz->der, archivo);
 }
 
-/* Sobreescribe "Canciones.txt" con el estado actual del catalogo. */
 void guardarCatalogo(void) {
     FILE *archivo = fopen("Canciones.txt", "w");
     if (archivo != NULL) {
@@ -456,11 +384,9 @@ void guardarCatalogo(void) {
     }
 }
 
-/* ============================================================================
- *  ABB DE USUARIOS (CRUD)
- * ============================================================================ */
+ // ABB DE USUARIOS (CRUD)
+ 
 
-/* CREATE: inserta un usuario nuevo en el ABB ordenado por correo. */
 NodoUsuario *insertarUsuario(NodoUsuario *raiz, char nombreReal[], char paisOrigen[], char correo[], char nick[], char pass[], char tipo[]) {
     if (raiz == NULL) {
         NodoUsuario *nuevo = (NodoUsuario *)malloc(sizeof(NodoUsuario));
@@ -493,7 +419,7 @@ NodoUsuario *insertarUsuario(NodoUsuario *raiz, char nombreReal[], char paisOrig
     return raiz;
 }
 
-/* READ: busca un usuario por correo (clave del ABB). */
+
 NodoUsuario *buscarUsuario(NodoUsuario *raiz, char correo[]) {
     if (raiz == NULL || strcmp(correo, raiz->correo) == 0) {
         return raiz;
@@ -504,13 +430,12 @@ NodoUsuario *buscarUsuario(NodoUsuario *raiz, char correo[]) {
     return buscarUsuario(raiz->der, correo);
 }
 
-/* Encuentra el nodo con el correo minimo de un subarbol (auxiliar para DELETE). */
 NodoUsuario *minimoUsuario(NodoUsuario *raiz) {
     while (raiz->izq != NULL) raiz = raiz->izq;
     return raiz;
 }
 
-/* DELETE: elimina un usuario del ABB por correo (caso de 0, 1 o 2 hijos). */
+
 NodoUsuario *eliminarUsuario(NodoUsuario *raiz, char correo[]) {
     if (raiz == NULL) {
         printf("No se encontro un usuario con ese correo.\n");
@@ -522,7 +447,7 @@ NodoUsuario *eliminarUsuario(NodoUsuario *raiz, char correo[]) {
     } else if (comparacion > 0) {
         raiz->der = eliminarUsuario(raiz->der, correo);
     } else {
-        /* Nodo encontrado */
+        
         if (raiz->izq == NULL) {
             NodoUsuario *temp = raiz->der;
             free(raiz);
@@ -534,7 +459,6 @@ NodoUsuario *eliminarUsuario(NodoUsuario *raiz, char correo[]) {
             printf("Usuario eliminado correctamente.\n");
             return temp;
         }
-        /* Dos hijos: se reemplaza con el sucesor inorden (minimo del subarbol derecho) */
         NodoUsuario *sucesor = minimoUsuario(raiz->der);
         strcpy(raiz->correo, sucesor->correo);
         strcpy(raiz->nombre, sucesor->nombre);
@@ -547,11 +471,7 @@ NodoUsuario *eliminarUsuario(NodoUsuario *raiz, char correo[]) {
     return raiz;
 }
 
-/* ============================================================================
- *  ABB DE ARTISTAS, LISTA DE DISCOS Y LISTA DE CANCIONES (CRUD canciones)
- * ============================================================================ */
 
-/* Busca un artista por nombre dentro del ABB de artistas. */
 NodoArtista *buscarArtista(NodoArtista *raiz, char nombre[]) {
     if (raiz == NULL || strcmp(nombre, raiz->nombre) == 0) {
         return raiz;
@@ -562,7 +482,7 @@ NodoArtista *buscarArtista(NodoArtista *raiz, char nombre[]) {
     return buscarArtista(raiz->der, nombre);
 }
 
-/* Inserta un artista nuevo (sin discos todavia) en el ABB de artistas. */
+
 NodoArtista *insertarArtista(NodoArtista *raiz, char nombre[]) {
     if (raiz == NULL) {
         NodoArtista *nuevo = (NodoArtista *)malloc(sizeof(NodoArtista));
@@ -581,7 +501,6 @@ NodoArtista *insertarArtista(NodoArtista *raiz, char nombre[]) {
     return raiz;
 }
 
-/* Busca un disco por nombre dentro de la lista ligada de discos de un artista. */
 NodoDisco *buscarDisco(NodoArtista *artista, char nombreDisco[]) {
     if (artista == NULL) return NULL;
     NodoDisco *d = artista->discos;
@@ -592,7 +511,7 @@ NodoDisco *buscarDisco(NodoArtista *artista, char nombreDisco[]) {
     return NULL;
 }
 
-/* Inserta un disco nuevo al inicio de la lista ligada de discos del artista. */
+
 NodoDisco *insertarDisco(NodoArtista *artista, char nombreDisco[], Fecha fecha) {
     NodoDisco *nuevo = (NodoDisco *)malloc(sizeof(NodoDisco));
     strcpy(nuevo->nombre, nombreDisco);
@@ -603,9 +522,7 @@ NodoDisco *insertarDisco(NodoArtista *artista, char nombreDisco[], Fecha fecha) 
     return nuevo;
 }
 
-/* CREATE: agrega una cancion al catalogo. Crea el artista y/o el disco si
- * todavia no existen (garantiza que todo artista tenga >=1 disco y todo
- * disco >=1 cancion, como pide el enunciado). */
+
 NodoCancion *insertarCancion(char nombreArtista[], char nombreDisco[], Fecha fechaDisco, char nombreCancion[], int duracion, char archivo[], char tipo[]) {
     NodoArtista *artista = buscarArtista(raizArtistas, nombreArtista);
     if (artista == NULL) {
@@ -632,7 +549,7 @@ NodoCancion *insertarCancion(char nombreArtista[], char nombreDisco[], Fecha fec
     return nueva;
 }
 
-/* Busca una cancion dentro de la lista de discos de UN artista por nombre. */
+
 NodoCancion *buscarCancionEnArtista(NodoArtista *art, char nombre[]) {
     if (art == NULL) return NULL;
     NodoDisco *d = art->discos;
@@ -647,7 +564,7 @@ NodoCancion *buscarCancionEnArtista(NodoArtista *art, char nombre[]) {
     return NULL;
 }
 
-/* READ: busca una cancion por nombre recorriendo TODO el ABB de artistas. */
+
 NodoCancion *buscarCancionPorNombre(NodoArtista *raiz, char nombre[]) {
     if (raiz == NULL) return NULL;
     NodoCancion *enEsteArtista = buscarCancionEnArtista(raiz, nombre);
@@ -657,8 +574,7 @@ NodoCancion *buscarCancionPorNombre(NodoArtista *raiz, char nombre[]) {
     return buscarCancionPorNombre(raiz->der, nombre);
 }
 
-/* UPDATE: permite modificar la duracion y el archivo/tipo de una cancion ya
- * existente (el nombre y el artista no se editan para no romper la jerarquia). */
+
 void actualizarCancion(NodoCancion *c) {
     if (c == NULL) return;
     printf("Editando '%s' de %s\n", c->nombre, c->artista);
@@ -673,11 +589,9 @@ void actualizarCancion(NodoCancion *c) {
     printf("Cancion actualizada.\n");
 }
 
-/* DELETE: elimina una cancion del catalogo SOLO si no pertenece a ninguna
- * playlist (enPlaylists == 0), como exige el enunciado. Devuelve 1 si se
- * elimino, 0 si no se pudo. */
+
 int eliminarCancion(char nombreCancion[]) {
-    /* Recorremos el ABB de artistas buscando la cancion y su disco contenedor */
+    
     NodoArtista *pilaArtistas[200];
     int tope = -1;
     pilaArtistas[++tope] = raizArtistas;
@@ -717,8 +631,6 @@ int eliminarCancion(char nombreCancion[]) {
     return 0;
 }
 
-/* Pide datos por teclado y crea una cancion nueva (creando artista/disco si
- * hace falta). Usada desde el submenu de catalogo. */
 void crearCancionInteractivo(void) {
     char artista[50], disco[60], cancion[60], archivo[120], tipo[10];
     int duracion;
@@ -744,7 +656,7 @@ void crearCancionInteractivo(void) {
     printf("Cancion agregada al catalogo.\n");
 }
 
-/* Imprime, en orden alfabetico, todos los artistas del ABB. */
+
 void mostrarArtistas(NodoArtista *raiz) {
     if (raiz == NULL) return;
     mostrarArtistas(raiz->izq);
@@ -752,7 +664,7 @@ void mostrarArtistas(NodoArtista *raiz) {
     mostrarArtistas(raiz->der);
 }
 
-/* Imprime los discos (con fecha) de un artista dado. */
+
 void mostrarDiscosDeArtista(NodoArtista *art) {
     if (art == NULL) {
         printf("Artista no encontrado.\n");
@@ -770,7 +682,7 @@ void mostrarDiscosDeArtista(NodoArtista *art) {
     }
 }
 
-/* Imprime las canciones de un disco dado. */
+
 void mostrarCancionesDeDisco(NodoDisco *d) {
     if (d == NULL) {
         printf("Disco no encontrado.\n");
@@ -784,7 +696,6 @@ void mostrarCancionesDeDisco(NodoDisco *d) {
     }
 }
 
-/* Pide un nombre de artista y muestra todas sus canciones (de todos sus discos). */
 void buscarPorArtista(void) {
     char nombre[50];
     getchar();
@@ -812,11 +723,7 @@ void buscarPorArtista(void) {
     if (!encontrado) printf("Este artista no tiene canciones registradas.\n");
 }
 
-/* ============================================================================
- *  COLA DE ANUNCIOS (FIFO)
- * ============================================================================ */
 
-/* Agrega (encola) un anuncio al final de la cola. */
 void encolarAnuncio(char contenido[], char anunciante[]) {
     NodoAnuncio *nuevo = (NodoAnuncio *)malloc(sizeof(NodoAnuncio));
     strcpy(nuevo->contenido, contenido);
@@ -832,9 +739,6 @@ void encolarAnuncio(char contenido[], char anunciante[]) {
     }
 }
 
-/* Saca (desencola) el anuncio del frente. Si la cola se vacia y hay anuncios
- * "reciclables" no se eliminan de memoria: para mantener anuncios disponibles
- * de forma ciclica, el anuncio reproducido se vuelve a encolar al final. */
 NodoAnuncio *desencolarAnuncio(void) {
     if (colaAnuncios.frente == NULL) return NULL;
     NodoAnuncio *anuncio = colaAnuncios.frente;
@@ -844,18 +748,12 @@ NodoAnuncio *desencolarAnuncio(void) {
     return anuncio;
 }
 
-/* Imprime el contenido de un anuncio en pantalla. */
+
 void mostrarAnuncio(NodoAnuncio *a) {
     if (a == NULL) return;
     printf("\n>>> ANUNCIO de %s: %s <<<\n", a->anunciante, a->contenido);
 }
 
-/* ============================================================================
- *  PLAYLISTS (lista ligada de playlists, cada una con lista doble de canciones)
- * ============================================================================ */
-
-/* CREATE: crea una playlist vacia y, opcionalmente, permite ir agregando
- * canciones del catalogo justo despues de crearla. */
 void crearPlaylist(NodoUsuario *usuarioActual) {
     if (usuarioActual == NULL) return;
 
@@ -883,9 +781,7 @@ void crearPlaylist(NodoUsuario *usuarioActual) {
     }
 }
 
-/* Agrega a una playlist un PUNTERO a una cancion existente del catalogo
- * (busca primero por nombre en todo el arbol de artistas) y aumenta el
- * contador enPlaylists de esa cancion, para poder controlar su borrado. */
+
 void agregarCancionAPlaylist(NodoPlaylist *playlist) {
     char nombreCancion[60];
     getchar();
@@ -910,8 +806,7 @@ void agregarCancionAPlaylist(NodoPlaylist *playlist) {
     printf("Cancion '%s' agregada a la playlist.\n", nombreCancion);
 }
 
-/* Quita una cancion de una playlist (no la borra del catalogo, solo
- * desconecta el nodo de referencia) y decrementa el contador enPlaylists. */
+
 void quitarCancionDePlaylist(NodoPlaylist *playlist) {
     if (playlist == NULL || playlist->canciones == NULL) {
         printf("La playlist no tiene canciones.\n");
@@ -940,7 +835,6 @@ void quitarCancionDePlaylist(NodoPlaylist *playlist) {
     printf("Esa cancion no esta en la playlist.\n");
 }
 
-/* Muestra todas las playlists del usuario y, dentro de cada una, sus canciones. */
 void verPlaylists(NodoUsuario *usuarioActual) {
     if (usuarioActual == NULL || usuarioActual->misPlaylists == NULL) {
         printf("No tienes playlists creadas aun.\n");
@@ -963,7 +857,6 @@ void verPlaylists(NodoUsuario *usuarioActual) {
     }
 }
 
-/* Imprime solo los nombres de las playlists (usado como ayuda visual). */
 void mostrarPlaylist(NodoUsuario *usuarioActual) {
     NodoPlaylist *temp = usuarioActual->misPlaylists;
     while (temp != NULL) {
@@ -972,7 +865,6 @@ void mostrarPlaylist(NodoUsuario *usuarioActual) {
     }
 }
 
-/* Busca una playlist del usuario por nombre. */
 NodoPlaylist *buscarPlaylist(char nombre[], NodoUsuario *usuarioAct) {
     if (usuarioAct->misPlaylists == NULL) {
         printf("No se encontro la playlist\n");
@@ -987,9 +879,6 @@ NodoPlaylist *buscarPlaylist(char nombre[], NodoUsuario *usuarioAct) {
     return NULL;
 }
 
-/* DELETE: elimina una playlist completa. Al liberar cada nodo de cancion de
- * la playlist se decrementa el contador enPlaylists de la cancion maestra
- * (la cancion en si NO se borra del catalogo). */
 void eliminarPlaylist(NodoUsuario *usuarioActual) {
     if (usuarioActual->misPlaylists == NULL) {
         printf("No se encuentran playlists\n");
@@ -1025,13 +914,6 @@ void eliminarPlaylist(NodoUsuario *usuarioActual) {
     printf("No se encontro la playlist\n");
 }
 
-/* ============================================================================
- *  REPRODUCCION (usa la PILA de historial y la COLA de anuncios)
- * ============================================================================ */
-
-/* Hace "push" de una reproduccion al tope de la pila de historial del
- * usuario, actualiza estadisticas (reproducciones de la cancion y tiempo
- * total escuchado) y pide la fecha de reproduccion. */
 void registrarReproduccion(NodoUsuario *usuarioActual, NodoCancion *c) {
     Fecha f;
     pedirFechaValida("Fecha de esta reproduccion", &f);
@@ -1039,16 +921,13 @@ void registrarReproduccion(NodoUsuario *usuarioActual, NodoCancion *c) {
     NodoHistorial *nuevo = (NodoHistorial *)malloc(sizeof(NodoHistorial));
     nuevo->cancion = c;
     nuevo->fecha = f;
-    nuevo->siguiente = usuarioActual->historial; /* push: el nuevo queda en el tope */
+    nuevo->siguiente = usuarioActual->historial; 
     usuarioActual->historial = nuevo;
 
     c->reproducciones++;
     usuarioActual->tiempoTotalSeg += c->duracionSeg;
 }
 
-/* Reproduce, una por una, las canciones de una playlist. Si el usuario es
- * "free", cada 3 canciones se desencola y reproduce un anuncio (cola FIFO).
- * Los usuarios premium nunca escuchan anuncios. */
 void reproducirPlaylist(NodoUsuario *usuarioActual) {
     if (usuarioActual == NULL || usuarioActual->misPlaylists == NULL) {
         printf("No existen playlists creadas\n");
@@ -1075,7 +954,6 @@ void reproducirPlaylist(NodoUsuario *usuarioActual) {
         printf("\n=== Reproduciendo: %s - %s ===\n", cancionActual->cancion->nombre, cancionActual->cancion->artista);
         registrarReproduccion(usuarioActual, cancionActual->cancion);
 
-        /* Logica de anuncios: solo para plan free, cada 3 canciones */
         if (strcmp(usuarioActual->plan, "free") == 0) {
             usuarioActual->cancionesDesdeAnuncio++;
             if (usuarioActual->cancionesDesdeAnuncio >= 3) {
@@ -1083,7 +961,6 @@ void reproducirPlaylist(NodoUsuario *usuarioActual) {
                 if (anuncio != NULL) {
                     mostrarAnuncio(anuncio);
                     usuarioActual->anunciosEscuchados++;
-                    /* Se reinserta el anuncio al final para reciclar la cola */
                     encolarAnuncio(anuncio->contenido, anuncio->anunciante);
                     free(anuncio);
                 }
@@ -1111,8 +988,7 @@ void reproducirPlaylist(NodoUsuario *usuarioActual) {
     } while (opcion != 3);
 }
 
-/* Recorre la PILA de historial desde el tope (ultima reproduccion) hasta el
- * fondo (primera reproduccion), mostrando los titulos como pide el enunciado. */
+
 void mostrarHistorial(NodoUsuario *usuarioActual) {
     if (usuarioActual->historial == NULL) {
         printf("Aun no tienes historial de reproduccion.\n");
@@ -1125,12 +1001,7 @@ void mostrarHistorial(NodoUsuario *usuarioActual) {
         temp = temp->siguiente;
     }
 }
-
-/* ============================================================================
- *  AMIGOS Y RECOMENDACIONES
- * ============================================================================ */
-
-/* Revisa si "candidato" ya esta en la lista de amigos de "usuarioActual". */
+//amigos
 int existeAmigo(NodoUsuario *usuarioActual, NodoUsuario *candidato) {
     NodoAmigo *temp = usuarioActual->misAmigos;
     while (temp != NULL) {
@@ -1140,7 +1011,6 @@ int existeAmigo(NodoUsuario *usuarioActual, NodoUsuario *candidato) {
     return 0;
 }
 
-/* Muestra la lista de amigos del usuario actual. */
 void verAmigos(NodoUsuario *usuarioActual) {
     if (usuarioActual->misAmigos == NULL) {
         printf("No tienes amigos agregados aun.\n");
@@ -1154,8 +1024,7 @@ void verAmigos(NodoUsuario *usuarioActual) {
     }
 }
 
-/* Busca un usuario por correo en el ABB y lo agrega como amigo de forma
- * reciproca (se agrega en ambas listas ligadas de amigos). */
+
 void agregarAmigo(NodoUsuario *usuarioActual, NodoUsuario *raizUsuarios) {
     char correoAmigo[50];
     getchar();
@@ -1191,7 +1060,6 @@ void agregarAmigo(NodoUsuario *usuarioActual, NodoUsuario *raizUsuarios) {
     printf("%s ahora es tu amigo.\n", encontrado->nickname);
 }
 
-/* Elimina la amistad en ambos sentidos (en las dos listas ligadas). */
 void eliminarAmigo(NodoUsuario *usuarioActual) {
     if (usuarioActual->misAmigos == NULL) {
         printf("No tienes amigos para eliminar.\n");
@@ -1234,9 +1102,7 @@ void eliminarAmigo(NodoUsuario *usuarioActual) {
     printf("No se encontro ese amigo en tu lista.\n");
 }
 
-/* Recomienda canciones: recorre la lista de amigos del usuario y, por cada
- * uno, recorre su PILA de historial (lo que ha escuchado) mostrando esas
- * canciones como sugerencia, evitando repetir nombres ya recomendados. */
+
 void recomendarPorAmigos(NodoUsuario *usuarioActual) {
     if (usuarioActual->misAmigos == NULL) {
         printf("Agrega amigos para poder recibir recomendaciones.\n");
@@ -1266,13 +1132,6 @@ void recomendarPorAmigos(NodoUsuario *usuarioActual) {
     if (total == 0) printf("Tus amigos aun no tienen historial de reproduccion.\n");
 }
 
-/* ============================================================================
- *  PLAN PREMIUM
- * ============================================================================ */
-
-/* Permite a un usuario free comprar el plan premium. Se pide la validez (en
- * dias) y el valor pagado, y se guarda un registro en la lista ligada de
- * historial de planes del usuario. */
 void comprarPremium(NodoUsuario *usuarioActual) {
     if (strcmp(usuarioActual->plan, "premium") == 0) {
         printf("Ya cuentas con el plan premium.\n");
@@ -1292,8 +1151,7 @@ void comprarPremium(NodoUsuario *usuarioActual) {
     printf("Felicidades, ahora tienes el plan premium sin anuncios.\n");
 }
 
-/* Permite renovar el plan premium ya existente, agregando un nuevo registro
- * a la lista ligada de historial de planes (no reemplaza el anterior). */
+
 void renovarPremium(NodoUsuario *usuarioActual) {
     if (strcmp(usuarioActual->plan, "premium") != 0) {
         printf("Debes tener el plan premium activo para renovarlo.\n");
@@ -1312,12 +1170,6 @@ void renovarPremium(NodoUsuario *usuarioActual) {
     printf("Plan premium renovado exitosamente.\n");
 }
 
-/* ============================================================================
- *  ESTADISTICAS Y REPORTES (.txt)
- * ============================================================================ */
-
-/* Recorre el ABB de artistas en orden y va llenando el arreglo auxiliar
- * "coleccionTemp" con TODAS las canciones del catalogo (puntero a cada una). */
 void recolectarCanciones(NodoArtista *raiz) {
     if (raiz == NULL) return;
     recolectarCanciones(raiz->izq);
@@ -1335,13 +1187,10 @@ void recolectarCanciones(NodoArtista *raiz) {
     recolectarCanciones(raiz->der);
 }
 
-/* Genera "Reporte_Top5.txt" con las 5 canciones mas escuchadas de TODO el
- * catalogo (segun el contador global "reproducciones" de cada cancion). */
 void reporteTop5Canciones(void) {
     totalColeccionTemp = 0;
     recolectarCanciones(raizArtistas);
 
-    /* Ordenamos por numero de reproducciones (burbuja, suficiente para el tamano esperado) */
     for (int i = 0; i < totalColeccionTemp - 1; i++) {
         for (int j = 0; j < totalColeccionTemp - 1 - i; j++) {
             if (coleccionTemp[j]->reproducciones < coleccionTemp[j + 1]->reproducciones) {
@@ -1364,9 +1213,6 @@ void reporteTop5Canciones(void) {
     printf("Reporte 'Reporte_Top5.txt' generado.\n");
 }
 
-/* Genera "Reporte_ArtistaPreferido_<nick>.txt": recorre la PILA de historial
- * del usuario contando cuantas veces aparece cada artista y reporta el que
- * mas se repite. */
 void reporteArtistaPreferido(NodoUsuario *u) {
     char nombreArchivo[100];
     sprintf(nombreArchivo, "Reporte_ArtistaPreferido_%s.txt", u->nickname);
@@ -1407,8 +1253,6 @@ void reporteArtistaPreferido(NodoUsuario *u) {
     printf("Reporte '%s' generado.\n", nombreArchivo);
 }
 
-/* Genera "Reporte_TiempoTotal_<nick>.txt" con el tiempo total (en segundos
- * y en formato hh:mm:ss) que el usuario ha pasado escuchando musica. */
 void reporteTiempoTotal(NodoUsuario *u) {
     char nombreArchivo[100];
     sprintf(nombreArchivo, "Reporte_TiempoTotal_%s.txt", u->nickname);
@@ -1425,8 +1269,6 @@ void reporteTiempoTotal(NodoUsuario *u) {
     printf("Reporte '%s' generado.\n", nombreArchivo);
 }
 
-/* Genera "Reporte_Anuncios_<nick>.txt" con el numero de anuncios escuchados
- * (este dato solo tiene sentido para usuarios con plan free). */
 void reporteAnunciosMostrados(NodoUsuario *u) {
     char nombreArchivo[100];
     sprintf(nombreArchivo, "Reporte_Anuncios_%s.txt", u->nickname);
@@ -1443,7 +1285,6 @@ void reporteAnunciosMostrados(NodoUsuario *u) {
     printf("Reporte '%s' generado.\n", nombreArchivo);
 }
 
-/* Genera, en una sola llamada, los 4 reportes pedidos por el enunciado. */
 void generarTodosLosReportes(NodoUsuario *u) {
     reporteTop5Canciones();
     reporteArtistaPreferido(u);
@@ -1452,11 +1293,7 @@ void generarTodosLosReportes(NodoUsuario *u) {
     printf("Todos los reportes fueron generados en archivos .txt\n");
 }
 
-/* ============================================================================
- *  SUBMENUS
- * ============================================================================ */
-
-/* Submenu de playlists: mostrar, crear, reproducir, quitar cancion, eliminar. */
+//mas menus
 void submenuPlaylists(NodoUsuario *usuarioActual) {
     int opcion;
     do {
@@ -1490,9 +1327,9 @@ void submenuPlaylists(NodoUsuario *usuarioActual) {
     } while (opcion != 6);
 }
 
-/* Submenu de catalogo: explorar artistas/discos/canciones y CRUD de canciones. */
+
 void submenuCatalogo(NodoUsuario *usuarioActual) {
-    (void)usuarioActual; /* no se requiere el usuario para administrar el catalogo */
+    (void)usuarioActual; 
     int opcion;
     do {
         printf("\n=== CATALOGO (ARTISTAS / DISCOS / CANCIONES) ===\n");
@@ -1563,7 +1400,7 @@ void submenuCatalogo(NodoUsuario *usuarioActual) {
     } while (opcion != 9);
 }
 
-/* Submenu de amigos: ver, agregar, eliminar y recibir recomendaciones. */
+// Submenu de amigos: ver, agregar, eliminar y recibir recomendaciones
 void submenuAmigos(NodoUsuario *usuarioActual, NodoUsuario *raizUsuarios) {
     int opcion;
     do {
@@ -1586,7 +1423,6 @@ void submenuAmigos(NodoUsuario *usuarioActual, NodoUsuario *raizUsuarios) {
     } while (opcion != 5);
 }
 
-/* Submenu de plan premium: comprar o renovar. */
 void submenuPremium(NodoUsuario *usuarioActual) {
     int opcion;
     do {
@@ -1606,7 +1442,7 @@ void submenuPremium(NodoUsuario *usuarioActual) {
     } while (opcion != 3);
 }
 
-/ Permite editar los datos del perfil
+// Permite editar los datos del perfil
 void Configuracion(NodoUsuario *usuarioActual) {
     int opc;
     char ver[10], cambio[50];
@@ -1653,11 +1489,9 @@ void Configuracion(NodoUsuario *usuarioActual) {
     }
 }
 
-/* ============================================================================
- *  MENU PRINCIPAL
- * ============================================================================ */
+//menu principal
 void menuPrincipal(NodoUsuario *usuarioActual, NodoUsuario *raizUsuarios) {
-    raizUsuariosGlobal = raizUsuarios; /* para poder guardar al salir del programa */
+    raizUsuariosGlobal = raizUsuarios; 
     int opcion;
     do {
         printf("\n===Hola %s (%s)===\n", usuarioActual->nickname, usuarioActual->plan);
@@ -1687,11 +1521,7 @@ void menuPrincipal(NodoUsuario *usuarioActual, NodoUsuario *raizUsuarios) {
     guardarCatalogo();
 }
 
-/* ============================================================================
- *  LOGIN Y REGISTRO
- * ============================================================================ */
-
-/* Verifica correo y contrasena contra el ABB de usuarios. */
+//registro
 NodoUsuario *IniciarSesion(NodoUsuario *raiz) {
     char correo[50], contrasena[50];
     printf("Ingrese su correo: ");
