@@ -181,11 +181,9 @@ int main() {
     NodoUsuario *raizUsuarios = NULL;
     NodoUsuario *usuarioActual = NULL;
     int opcion;
-
     raizUsuarios = cargarArchivoU(raizUsuarios);
     cargarCatalogo();
     cargarAnuncios();
-
     do {
         printf("\n========== SPOTIFY Chino ==========\n");
         printf("1. Iniciar Sesion\n");
