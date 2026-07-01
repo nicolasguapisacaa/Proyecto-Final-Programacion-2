@@ -1,3 +1,2 @@
-Creep;Radiohead
-Make_me_wanna_die;The_pretty_reckless
-what_i've_done;Linkin_Park
+Daft Punk;Discovery;12;3;2001;One More Time;320;C:/musica/onemoretime.mp3;MP3
+The Strokes;Is This It;30;7;2001;Someday;220;https://servidor.com/someday;URL
